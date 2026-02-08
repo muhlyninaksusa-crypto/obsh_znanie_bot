@@ -44,7 +44,7 @@ logging.basicConfig(
 )
 
 # ⚠️ БЕЗОПАСНОЕ ПОЛУЧЕНИЕ ТОКЕНА ИЗ ПЕРЕМЕННЫХ ОКРУЖЕНИЯ
-BOT_TOKEN =7633409008:AAH3r92lQVFq-VsAbHutqq8mbsiYbZD4y2k
+BOT_TOKEN ="7633409008:AAH3r92lQVFq-VsAbHutqq8mbsiYbZD4y2k"
 
 # Проверка токена
 if not BOT_TOKEN:
@@ -1553,3 +1553,4 @@ if __name__ == "__main__":
         # Перезапуск
 
         asyncio.run(main())
+
