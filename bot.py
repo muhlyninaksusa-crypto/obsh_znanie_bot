@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # ========== КОНФИГУРАЦИЯ ==========
-BOT_TOKEN = os.getenv("BOT_TOKEN", "ВАШ_ТОКЕН_ЗДЕСЬ")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "7633409008:AAH3r92lQVFq-VsAbHutqq8mbsiYbZD4y2k")
 
 if BOT_TOKEN == "7633409008:AAH3r92lQVFq-VsAbHutqq8mbsiYbZD4y2k":
     logging.warning("⚠️ Используется тестовый токен. Для работы добавь BOT_TOKEN в Railway Variables")
@@ -2761,3 +2761,4 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
