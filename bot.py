@@ -1,3 +1,13 @@
+import os
+import sys
+import logging
+
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+if not BOT_TOKEN:
+    print("❌ ОШИБКА: BOT_TOKEN не найден в Railway Variables!")
+    sys.exit(1)
+
+print("✅ Токен получен, запускаю бота...")
 import asyncio
 import logging
 import random
@@ -17,9 +27,9 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # ========== КОНФИГУРАЦИЯ ==========
-BOT_TOKEN = os.getenv("BOT_TOKEN", "7633409008:AAH3r92lQVFq-VsAbHutqq8mbsiYbZD4y2k")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "ВАШ_ТОКЕН_ЗДЕСЬ")
 
-if BOT_TOKEN == "7633409008:AAH3r92lQVFq-VsAbHutqq8mbsiYbZD4y2k":
+if BOT_TOKEN == "ВАШ_ТОКЕН_ЗДЕСЬ":
     logging.warning("⚠️ Используется тестовый токен. Для работы добавь BOT_TOKEN в Railway Variables")
 
 storage = MemoryStorage()
@@ -2761,4 +2771,5 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
