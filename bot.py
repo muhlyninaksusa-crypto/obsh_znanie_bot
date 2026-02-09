@@ -1,17 +1,8 @@
 import os
 import sys
 import logging
-
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-if not BOT_TOKEN:
-    print("❌ ОШИБКА: BOT_TOKEN не найден в Railway Variables!")
-    sys.exit(1)
-
-print("✅ Токен получен, запускаю бота...")
 import asyncio
-import logging
 import random
-import os
 import json
 from datetime import datetime, timedelta
 from aiogram import Bot, Dispatcher, types, F
@@ -22,16 +13,28 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.storage.memory import MemoryStorage
 
-# Настройка логирования
+# ========== ПРОВЕРКА ТОКЕНА ==========
+# Получаем токен из Railway Variables
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+
+# Проверяем наличие токена
+if not BOT_TOKEN:
+    print("❌ ОШИБКА: BOT_TOKEN не найден в Railway Variables!")
+    print("📝 Добавьте переменную BOT_TOKEN в Railway:")
+    print("1. Зайдите в Railway → Variables")
+    print("2. Нажмите 'New Variable'")
+    print("3. Key: BOT_TOKEN")
+    print("4. Value: ваш_токен_от_BotFather")
+    sys.exit(1)
+
+print("✅ Токен получен из Railway Variables!")
+print("🚀 Запускаю бота...")
+
+# ========== НАСТРОЙКА ЛОГИРОВАНИЯ ==========
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# ========== КОНФИГУРАЦИЯ ==========
-BOT_TOKEN = os.getenv("BOT_TOKEN", "ВАШ_ТОКЕН_ЗДЕСЬ")
-
-if BOT_TOKEN == "ВАШ_ТОКЕН_ЗДЕСЬ":
-    logging.warning("⚠️ Используется тестовый токен. Для работы добавь BOT_TOKEN в Railway Variables")
-
+# ========== СОЗДАНИЕ ОБЪЕКТОВ БОТА ==========
 storage = MemoryStorage()
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher(storage=storage)
@@ -39,6 +42,17 @@ dp = Dispatcher(storage=storage)
 # ========== СОСТОЯНИЯ ==========
 class AnswerStates(StatesGroup):
     waiting_word_answer = State()
+    waiting_text_answer = State()
+
+# ========== СИСТЕМА ДОСТИЖЕНИЙ ==========
+ACHIEVEMENTS = {
+    "first_step": {
+        "name": "🚀 Первый шаг",
+        "description": "Решить первое задание",
+        "icon": "🚀",
+        "unlocked": False
+    },
+    # ... остальной код продолжается
     waiting_text_answer = State()
 
 # ========== СИСТЕМА ДОСТИЖЕНИЙ ==========
@@ -2771,5 +2785,6 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
