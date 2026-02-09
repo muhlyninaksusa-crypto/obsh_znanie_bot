@@ -5,7 +5,7 @@ import asyncio
 import random
 import json
 from datetime import datetime, timedelta
-from aiogram import Bot, Dispatcher, types, F
+from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
@@ -466,7 +466,7 @@ THEORY_DETAILED = {
             "key_points": [
                 "Функции партий: представление интересов, борьба за власть, политическое образование, подготовка кадров",
                 "Типы партий: правящие и оппозиционные",
-                "Идеологии: консерватизм, либеразм, социализм",
+                "Идеологии: консерватизм, либерализм, социализм",
                 "Партийная система: однопартийная, двухпартийная, многопартийная",
                 "Общественно-политические движения — массовые объединения граждан"
             ],
@@ -535,7 +535,7 @@ THEORY_DETAILED = {
             "examples": [
                 "Нормативный акт: Конституция РФ, федеральные законы",
                 "Обычай: обычай делового оборота в торговле",
-                "Прецедент: решения судов в Великобритании и США"
+                "Преcedent: решения судов в Великобритании и США"
             ],
             "questions": [
                 "Назовите признаки права",
@@ -606,7 +606,7 @@ THEORY_DETAILED = {
         "Правосудие и правоохранительные органы": {
             "definition": "Правосудие — это деятельность судов по рассмотрению и разрешению дел.",
             "key_points": [
-                "Принципы правосудия: законность, независимость судей, гласность, состязательность, презумпция невиновности",
+                "Принципы правосудие: законность, независимость судей, гласность, состязательность, презумпция невиновности",
                 "Судебная система: Конституционный суд, Верховный суд, арбитражные суды, суды общей юрисдикции",
                 "Правоохранительные органы: прокуратура, полиция, ФСБ, следственный комитет",
                 "Адвокатура — профессиональная помощь по правовым вопросам",
@@ -648,7 +648,7 @@ THEORY_DETAILED = {
         "Наука и образование": {
             "definition": "Наука — это система знаний о законах развития природы, общества и мышления.",
             "key_points": [
-                "Признаки науки: объективность, доказательность, системность, проверяемность",
+                "Признаки науки: объективность, доказательность, системность, проверяемость",
                 "Функции науки: познавательная, мировоззренческая, прогностическая, производственная",
                 "Уровни образования: общее (школа), профессиональное (колледж, вуз), дополнительное",
                 "Принципы образования: гуманизм, доступность, светский характер, непрерывность",
@@ -691,7 +691,7 @@ THEORY_DETAILED = {
                 "Мировые религии: христианство, ислам, буддизм",
                 "Национальные религии: иудаизм, индуизм, синтоизм",
                 "Религиозные организации: церковь, секта, деноминация",
-                "Функции религия: мировоззренческая, компенсаторная (утешение), регулятивная, интегрирующая",
+                "Функции религии: мировоззренческая, компенсаторная (утешение), регулятивная, интегрирующая",
                 "Свобода совести — право исповедовать любую религию или не исповедовать никакой"
             ],
             "examples": [
@@ -1527,7 +1527,7 @@ QUESTIONS = {
         {
             "id": 45,
             "text": "Что является примером социального конфликта?\n\n1) спор покупателя и продавца\n2) разногласия между политическими партиями\n3) забастовка рабочих\n4) все перечисленные",
-            "options": ["спор покупателя и продавца", "разногласия между политическими партиями", "забастовка рабочих", "все перечисленные"],
+            "options": ["спор покупателя и продавца", "разногласия между политическими партияи", "забастовка рабочих", "все перечисленные"],
             "correct": 3,
             "explanation": "✅ Правильно: все перечисленные. Социальный конфликт - столкновение интересов социальных групп. Все примеры относятся к конфликтам.",
             "topic": "Социальная сфера",
@@ -1727,6 +1727,10 @@ def get_options_keyboard(options, question_id):
     builder.adjust(1)
     return builder.as_markup()
 
+# ========== ФИЛЬТРЫ ДЛЯ КНОПОК ==========
+# Создаем кастомные фильтры для текстовых команд
+from aiogram.filters import Text
+
 # ========== ОБРАБОТЧИКИ КОМАНД ==========
 @dp.message(Command("start"))
 async def start_command(message: types.Message):
@@ -1761,20 +1765,20 @@ async def start_command(message: types.Message):
     
     await message.answer(welcome, parse_mode="HTML", reply_markup=get_main_keyboard())
 
-@dp.message(F.text == "📚 ТЕОРИЯ")
+@dp.message(Text(text="📚 ТЕОРИЯ"))
 async def theory_command(message: types.Message):
     user_state = get_user_state(message.from_user.id)
     user_state.update_daily_streak()
     
     await message.answer(
         "📚 <b>ВЫБЕРИТЕ ТЕМУ:</b>\n\n"
-        "Каждая тема разделена на подтемы с подробными карточками:\n"
+        "Каждая тема разделена на подтемы с подробными карточки:\n"
         "• Определение понятия\n• Ключевые моменты\n• Примеры\n• Вопросы для самопроверки",
         parse_mode="HTML",
         reply_markup=get_theory_keyboard()
     )
 
-@dp.message(F.text == "🎯 ЗАДАНИЯ")
+@dp.message(Text(text="🎯 ЗАДАНИЯ"))
 async def tasks_command(message: types.Message):
     user_state = get_user_state(message.from_user.id)
     user_state.update_daily_streak()
@@ -1787,7 +1791,7 @@ async def tasks_command(message: types.Message):
         reply_markup=get_tasks_group_keyboard()
     )
 
-@dp.message(F.text == "🏆 ДОСТИЖЕНИЯ")
+@dp.message(Text(text="🏆 ДОСТИЖЕНИЯ"))
 async def achievements_command(message: types.Message):
     user_state = get_user_state(message.from_user.id)
     user_state.update_daily_streak()
@@ -1804,7 +1808,7 @@ async def achievements_command(message: types.Message):
         reply_markup=get_achievements_keyboard()
     )
 
-@dp.message(F.text == "📊 СТАТИСТИКА")
+@dp.message(Text(text="📊 СТАТИСТИКА"))
 async def stats_command(message: types.Message):
     user_state = get_user_state(message.from_user.id)
     user_state.update_daily_streak()
@@ -1849,7 +1853,7 @@ async def stats_command(message: types.Message):
     
     await message.answer(stats_text, parse_mode="HTML")
 
-@dp.message(F.text == "🔄 ПОВТОРИТЬ")
+@dp.message(Text(text="🔄 ПОВТОРИТЬ"))
 async def repeat_command(message: types.Message):
     user_state = get_user_state(message.from_user.id)
     user_state.update_daily_streak()
@@ -1885,7 +1889,7 @@ async def repeat_command(message: types.Message):
             parse_mode="HTML"
         )
 
-@dp.message(F.text == "📝 ПОЛНЫЙ ОГЭ")
+@dp.message(Text(text="📝 ПОЛНЫЙ ОГЭ"))
 async def full_exam_command(message: types.Message):
     user_state = get_user_state(message.from_user.id)
     user_state.update_daily_streak()
@@ -1927,12 +1931,12 @@ async def ping_command(message: types.Message):
     await message.answer("🏓 Pong! Бот работает исправно.")
 
 # ========== ОБРАБОТЧИКИ CALLBACK ==========
-@dp.callback_query(F.data == "back_main")
+@dp.callback_query(Text(text="back_main"))
 async def back_main_callback(callback: types.CallbackQuery):
     await callback.message.delete()
     await callback.message.answer("Главное меню:", reply_markup=get_main_keyboard())
 
-@dp.callback_query(F.data == "back_theory")
+@dp.callback_query(Text(text="back_theory"))
 async def back_theory_callback(callback: types.CallbackQuery):
     await callback.message.edit_text(
         "📚 <b>ВЫБЕРИТЕ ТЕМУ:</b>",
@@ -1940,7 +1944,7 @@ async def back_theory_callback(callback: types.CallbackQuery):
         reply_markup=get_theory_keyboard()
     )
 
-@dp.callback_query(F.data == "back_to_groups")
+@dp.callback_query(Text(text="back_to_groups"))
 async def back_to_groups_callback(callback: types.CallbackQuery):
     await callback.message.edit_text(
         "🎯 <b>ЗАДАНИЯ ОГЭ (1-49):</b>",
@@ -1948,7 +1952,7 @@ async def back_to_groups_callback(callback: types.CallbackQuery):
         reply_markup=get_tasks_group_keyboard()
     )
 
-@dp.callback_query(F.data.startswith("theory_topic_"))
+@dp.callback_query(Text(startswith="theory_topic_"))
 async def theory_topic_callback(callback: types.CallbackQuery):
     topic_name = callback.data.replace("theory_topic_", "")
     user_state = get_user_state(callback.from_user.id)
@@ -1972,7 +1976,7 @@ async def theory_topic_callback(callback: types.CallbackQuery):
         
         await callback.message.edit_text(text, parse_mode="HTML", reply_markup=get_subtopics_keyboard(topic_name))
 
-@dp.callback_query(F.data.startswith("subtopic_"))
+@dp.callback_query(Text(startswith="subtopic_"))
 async def subtopic_callback(callback: types.CallbackQuery):
     data = callback.data.replace("subtopic_", "").split("_", 1)
     topic_name = data[0]
@@ -2028,7 +2032,7 @@ async def subtopic_callback(callback: types.CallbackQuery):
             reply_markup=get_subtopic_detail_keyboard(topic_name, subtopic_name)
         )
 
-@dp.callback_query(F.data.startswith("test_"))
+@dp.callback_query(Text(startswith="test_"))
 async def test_subtopic_callback(callback: types.CallbackQuery):
     data = callback.data.replace("test_", "").split("_", 1)
     if len(data) < 2:
@@ -2060,7 +2064,7 @@ async def test_subtopic_callback(callback: types.CallbackQuery):
     else:
         await callback.answer("❌ Нет вопросов по этой теме", show_alert=True)
 
-@dp.callback_query(F.data.startswith("practice_"))
+@dp.callback_query(Text(startswith="practice_"))
 async def practice_topic_callback(callback: types.CallbackQuery):
     data = callback.data.replace("practice_", "")
     
@@ -2119,7 +2123,7 @@ async def practice_topic_callback(callback: types.CallbackQuery):
     else:
         await callback.answer("❌ Нет вопросов по этой теме", show_alert=True)
 
-@dp.callback_query(F.data.startswith("group_"))
+@dp.callback_query(Text(startswith="group_"))
 async def group_callback(callback: types.CallbackQuery):
     data = callback.data.replace("group_", "").split("_")
     if len(data) != 2:
@@ -2144,7 +2148,7 @@ async def group_callback(callback: types.CallbackQuery):
         reply_markup=get_group_tasks_keyboard(start, end)
     )
 
-@dp.callback_query(F.data.startswith("task_"))
+@dp.callback_query(Text(startswith="task_"))
 async def task_callback(callback: types.CallbackQuery):
     try:
         task_num = int(callback.data.replace("task_", ""))
@@ -2163,7 +2167,7 @@ async def task_callback(callback: types.CallbackQuery):
     else:
         await callback.answer(f"❌ Задание №{task_num} не найдено", show_alert=True)
 
-@dp.callback_query(F.data == "random_task")
+@dp.callback_query(Text(text="random_task"))
 async def random_task_callback(callback: types.CallbackQuery):
     # Собираем все вопросы
     all_questions = []
@@ -2179,7 +2183,7 @@ async def random_task_callback(callback: types.CallbackQuery):
     else:
         await callback.answer("❌ Нет доступных заданий", show_alert=True)
 
-@dp.callback_query(F.data == "my_achievements")
+@dp.callback_query(Text(text="my_achievements"))
 async def my_achievements_callback(callback: types.CallbackQuery):
     user_state = get_user_state(callback.from_user.id)
     
@@ -2212,7 +2216,7 @@ async def my_achievements_callback(callback: types.CallbackQuery):
     
     await callback.message.edit_text(achievements_text, parse_mode="HTML", reply_markup=keyboard.as_markup())
 
-@dp.callback_query(F.data == "my_progress")
+@dp.callback_query(Text(text="my_progress"))
 async def my_progress_callback(callback: types.CallbackQuery):
     user_state = get_user_state(callback.from_user.id)
     progress = user_state.get_progress_summary()
@@ -2246,7 +2250,7 @@ async def my_progress_callback(callback: types.CallbackQuery):
     
     await callback.message.edit_text(progress_text, parse_mode="HTML", reply_markup=keyboard.as_markup())
 
-@dp.callback_query(F.data == "my_activity")
+@dp.callback_query(Text(text="my_activity"))
 async def my_activity_callback(callback: types.CallbackQuery):
     user_state = get_user_state(callback.from_user.id)
     
@@ -2281,7 +2285,7 @@ async def my_activity_callback(callback: types.CallbackQuery):
     
     await callback.message.edit_text(activity_text, parse_mode="HTML", reply_markup=keyboard.as_markup())
 
-@dp.callback_query(F.data == "back_achievements")
+@dp.callback_query(Text(text="back_achievements"))
 async def back_achievements_callback(callback: types.CallbackQuery):
     await callback.message.edit_text(
         "🏆 <b>СИСТЕМА ДОСТИЖЕНИЙ</b>\n\nВыберите опцию:",
@@ -2289,7 +2293,7 @@ async def back_achievements_callback(callback: types.CallbackQuery):
         reply_markup=get_achievements_keyboard()
     )
 
-@dp.callback_query(F.data.startswith("weak_"))
+@dp.callback_query(Text(startswith="weak_"))
 async def weak_topic_callback(callback: types.CallbackQuery):
     topic_name = callback.data.replace("weak_", "")
     
@@ -2306,7 +2310,7 @@ async def weak_topic_callback(callback: types.CallbackQuery):
                 .as_markup()
         )
 
-@dp.callback_query(F.data == "repeat_back")
+@dp.callback_query(Text(text="repeat_back"))
 async def repeat_back_callback(callback: types.CallbackQuery):
     user_state = get_user_state(callback.from_user.id)
     user_state.update_daily_streak()
@@ -2362,7 +2366,7 @@ async def send_question(user_id, question, edit_message=None, is_exam=False):
         await bot.send_message(user_id, text, parse_mode="HTML", reply_markup=keyboard)
 
 # ========== ОБРАБОТКА ОТВЕТОВ ==========
-@dp.callback_query(F.data.startswith("single_"))
+@dp.callback_query(Text(startswith="single_"))
 async def single_choice_callback(callback: types.CallbackQuery):
     task_id = int(callback.data.replace("single_", ""))
     
@@ -2374,7 +2378,7 @@ async def single_choice_callback(callback: types.CallbackQuery):
                 await callback.message.edit_reply_markup(reply_markup=keyboard)
                 return
 
-@dp.callback_query(F.data.startswith("answer_"))
+@dp.callback_query(Text(startswith="answer_"))
 async def answer_callback(callback: types.CallbackQuery):
     data = callback.data.replace("answer_", "").split("_")
     if len(data) != 2:
@@ -2435,7 +2439,7 @@ async def answer_callback(callback: types.CallbackQuery):
                 )
                 return
 
-@dp.callback_query(F.data.startswith("text_"))
+@dp.callback_query(Text(startswith="text_"))
 async def text_answer_callback(callback: types.CallbackQuery):
     task_id = int(callback.data.replace("text_", ""))
     user_state = get_user_state(callback.from_user.id)
@@ -2466,7 +2470,7 @@ async def text_answer_callback(callback: types.CallbackQuery):
                     instruction += "<i>Пример: «Правительство»</i>"
                 elif question["type"] == "text_plan":
                     instruction += "• Составьте план из 3-4 пунктов\n\n"
-                    instruction += "<i>Пример: «1. Угроза природе. 2. Влияение человека. 3. Пути решения»</i>"
+                    instruction += "<i>Пример: «1. Угроза природе. 2. Влияние человека. 3. Пути решения»</i>"
                 elif question["type"] == "text_questions":
                     instruction += "• Ответьте на все вопросы по порядку\n\n"
                     instruction += "<i>Пример: «1) Процесс усвоения норм. 2) От культурных ценностей. 3) Ожидания поведения»</i>"
@@ -2483,7 +2487,7 @@ async def text_answer_callback(callback: types.CallbackQuery):
                 await callback.message.answer(instruction, parse_mode="HTML")
                 return
 
-@dp.callback_query(F.data.startswith("show_theory_"))
+@dp.callback_query(Text(startswith="show_theory_"))
 async def show_theory_in_task_callback(callback: types.CallbackQuery):
     task_id = int(callback.data.replace("show_theory_", ""))
     
@@ -2524,7 +2528,7 @@ async def show_theory_in_task_callback(callback: types.CallbackQuery):
                 reply_markup=keyboard.as_markup()
             )
 
-@dp.callback_query(F.data.startswith("back_to_task_"))
+@dp.callback_query(Text(startswith="back_to_task_"))
 async def back_to_task_callback(callback: types.CallbackQuery):
     task_id = int(callback.data.replace("back_to_task_", ""))
     
@@ -2534,7 +2538,7 @@ async def back_to_task_callback(callback: types.CallbackQuery):
                 await send_question(callback.from_user.id, question, edit_message=callback.message)
                 return
 
-@dp.callback_query(F.data.startswith("back_to_question_"))
+@dp.callback_query(Text(startswith="back_to_question_"))
 async def back_to_question_callback(callback: types.CallbackQuery):
     task_id = int(callback.data.replace("back_to_question_", ""))
     
@@ -2544,7 +2548,7 @@ async def back_to_question_callback(callback: types.CallbackQuery):
                 await send_question(callback.from_user.id, question, edit_message=callback.message)
                 return
 
-@dp.callback_query(F.data == "exam_next")
+@dp.callback_query(Text(text="exam_next"))
 async def exam_next_callback(callback: types.CallbackQuery):
     user_state = get_user_state(callback.from_user.id)
     
@@ -2558,7 +2562,7 @@ async def exam_next_callback(callback: types.CallbackQuery):
             await finish_exam(callback, user_state)
 
 # ========== ОБРАБОТКА ТЕКСТОВЫХ ОТВЕТОВ ==========
-@dp.message(F.text)
+@dp.message()
 async def handle_text_messages(message: types.Message):
     user_state = get_user_state(message.from_user.id)
     user_state.update_daily_streak()
@@ -2787,7 +2791,7 @@ async def finish_exam(context, user_state):
     
     await message.answer(result_text, parse_mode="HTML", reply_markup=keyboard.as_markup())
 
-@dp.callback_query(F.data == "stats")
+@dp.callback_query(Text(text="stats"))
 async def stats_from_exam_callback(callback: types.CallbackQuery):
     await stats_command(callback.message)
 
@@ -2803,4 +2807,5 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
