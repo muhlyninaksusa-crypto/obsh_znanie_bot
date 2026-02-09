@@ -105,6 +105,13 @@ ACHIEVEMENTS = {
         "target": 10
     }
 }
+        "description": "10 заданий подряд без ошибок",
+        "icon": "💎",
+        "unlocked": False,
+        "progress": 0,
+        "target": 10
+    }
+}
         "name": "🚀 Первый шаг",
         "description": "Решить первое задание",
         "icon": "🚀",
@@ -2832,6 +2839,7 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
