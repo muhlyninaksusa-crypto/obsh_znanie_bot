@@ -52,12 +52,59 @@ ACHIEVEMENTS = {
         "icon": "🚀",
         "unlocked": False
     },
-    # ... остальной код продолжается
-    waiting_text_answer = State()
-
-# ========== СИСТЕМА ДОСТИЖЕНИЙ ==========
-ACHIEVEMENTS = {
-    "first_step": {
+    "constitution_expert": {
+        "name": "⚖️ Эксперт по Конституции",
+        "description": "Правильно ответить на 10 вопросов по праву",
+        "icon": "⚖️",
+        "unlocked": False,
+        "progress": 0,
+        "target": 10
+    },
+    "perfect_week": {
+        "name": "⭐ Неделя без ошибок",
+        "description": "7 дней подряд без ошибок",
+        "icon": "⭐",
+        "unlocked": False,
+        "progress": 0,
+        "target": 7
+    },
+    "active_month": {
+        "name": "🔥 Активный месяц",
+        "description": "30 дней подряд с ботом",
+        "icon": "🔥",
+        "unlocked": False,
+        "progress": 0,
+        "target": 30
+    },
+    "all_topics": {
+        "name": "🎓 Освоил все темы",
+        "description": "Пройти все темы с результатом >80%",
+        "icon": "🎓",
+        "unlocked": False
+    },
+    "oge_master": {
+        "name": "🏆 Мастер ОГЭ",
+        "description": "Набрать 25+ баллов в полном варианте",
+        "icon": "🏆",
+        "unlocked": False
+    },
+    "marathon": {
+        "name": "🏃‍♂️ Марафонщик",
+        "description": "Решить 50 заданий за один день",
+        "icon": "🏃‍♂️",
+        "unlocked": False,
+        "progress": 0,
+        "target": 50
+    },
+    "perfectionist": {
+        "name": "💎 Перфекционист",
+        "description": "10 заданий подряд без ошибок",
+        "icon": "💎",
+        "unlocked": False,
+        "progress": 0,
+        "target": 10
+    }
+}
         "name": "🚀 Первый шаг",
         "description": "Решить первое задание",
         "icon": "🚀",
@@ -2785,6 +2832,7 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
