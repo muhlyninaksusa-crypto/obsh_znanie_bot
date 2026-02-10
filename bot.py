@@ -15,7 +15,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.enums import ParseMode
 from aiogram.filters import CommandObject
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
-from aiogram.client.default import DefaultBotProperties  # ДОБАВЛЕНО
+from aiogram.client.default import DefaultBotProperties
 from aiohttp import web
 import ssl
 
@@ -45,7 +45,7 @@ WEBHOOK_URL = f"{WEBHOOK_HOST}{WEBHOOK_PATH}"
 WEBAPP_HOST = "0.0.0.0"
 WEBAPP_PORT = int(os.getenv("PORT", 8080))
 
-print(f"🌐 Webhook URL: {WEBHOOK_URL}")
+print(f"🌐 Webhook URL: {WEBHOOK_URL or 'Не настроен'}")
 print(f"🚂 Railway Port: {WEBAPP_PORT}")
 
 # ========== НАСТРОЙКА ЛОГИРОВАНИЯ ==========
@@ -57,7 +57,7 @@ logger = logging.getLogger(__name__)
 
 # ========== СОЗДАНИЕ ОБЪЕКТОВ БОТА ==========
 storage = MemoryStorage()
-bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))  # ИСПРАВЛЕНО
+bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher(storage=storage)
 
 # ========== СОСТОЯНИЯ ==========
@@ -387,7 +387,7 @@ THEORY_DETAILED = {
                 "Делинквентное поведение — нарушающее законы"
             ],
             "examples": [
-                "Обычаи: встречать хлебом-солью",
+                "Обычаи: встречать хлебом2солью",
                 "Традиции: праздновать Новый год",
                 "Мораль: не убий, не укради",
                 "Право: Конституция, законы"
@@ -487,7 +487,7 @@ THEORY_DETAILED = {
             "key_points": [
                 "Функции партий: представление интересов, борьба за власть, политическое образование, подготовка кадров",
                 "Типы партий: правящие и оппозиционные",
-                "Идеологии: консерватизм, либеральзм, социализм",
+                "Идеологии: консерватизм, либерализм, социализм",
                 "Партийная система: однопартийная, двухпартийная, многопартийная",
                 "Общественно-политические движения — массовые объединения граждан"
             ],
@@ -532,7 +532,7 @@ THEORY_DETAILED = {
                 "Политическая ответственность — обязанность отвечать за решения"
             ],
             "examples": [
-                "Традиционный лидер: король по наследству",
+                "Традительный лидер: король по наследству",
                 "Харизматический лидер: человек с особой притягательностью",
                 "Легальный лидер: избранный президент"
             ],
@@ -1872,7 +1872,7 @@ async def theory_command(message: Message):
     
     await message.answer(
         "📚 <b>ВЫБЕРИТЕ ТЕМУ:</b>\n\n"
-        "Каждая тема разделена на подтемы с подробными карточками:\n"
+        "Каждая тема разделена на подтемы с подробными карточки:\n"
         "• Определение понятия\n• Ключевые моменты\n• Примеры\n• Вопросы для самопроверки",
         reply_markup=get_theory_keyboard()
     )
@@ -2840,95 +2840,62 @@ async def finish_exam(context, user_state):
 async def stats_from_exam_callback(callback: types.CallbackQuery):
     await stats_command(callback.message)
 
-# ========== НАСТРОЙКА WEBHOOK ==========
-async def on_startup():
-    """Установка вебхука при запуске"""
-    if WEBHOOK_URL and WEBHOOK_URL.startswith("https://"):
-        try:
-            await bot.set_webhook(
-                url=WEBHOOK_URL,
-                drop_pending_updates=True
-            )
-            logger.info(f"Webhook установлен: {WEBHOOK_URL}")
-        except Exception as e:
-            logger.error(f"Ошибка установки webhook: {e}")
-    else:
-        logger.info("Webhook не установлен, используется polling")
-
-async def on_shutdown():
-    """Удаление вебхука при завершении"""
-    if WEBHOOK_URL:
-        try:
-            await bot.delete_webhook()
-            logger.info("Webhook удален")
-        except Exception as e:
-            logger.error(f"Ошибка удаления webhook: {e}")
-    
-    await bot.session.close()
-    logger.info("Сессия бота закрыта")
-
-# ========== ЗАПУСК БОТА ==========
-async def main_webhook():
-    """Запуск с webhook для Railway"""
-    print("🤖 Бот запускается (webhook режим)...")
+# ========== УЛУЧШЕННЫЙ ЗАПУСК БОТА ==========
+async def main():
+    """Главная функция запуска бота"""
+    print("🤖 Бот запускается...")
     print(f"✅ Токен: {'Установлен' if BOT_TOKEN else 'Требуется настройка'}")
-    print(f"🌐 Webhook URL: {WEBHOOK_URL or 'Не установлен'}")
+    print(f"🌐 Webhook URL: {WEBHOOK_URL or 'Не настроен'}")
     print(f"🚂 Порт: {WEBAPP_PORT}")
     print("🎮 Система геймификации: ВКЛЮЧЕНА")
     print("📚 База вопросов: 49 заданий ОГЭ")
     print("🏆 Достижений: 8 типов")
     print("📖 Теория: 6 тем, 30 подтем с карточками")
     
-    # Инициализация webhook
-    await on_startup()
-    
-    # Создание aiohttp приложения
-    app = web.Application()
-    webhook_requests_handler = SimpleRequestHandler(
-        dispatcher=dp,
-        bot=bot,
-        secret_token=BOT_TOKEN
-    )
-    
-    # Регистрация webhook обработчика
-    webhook_requests_handler.register(app, path=WEBHOOK_PATH)
-    
-    # Настройка приложения
-    setup_application(app, dp, bot=bot)
-    
-    # Запуск сервера
-    runner = web.AppRunner(app)
-    await runner.setup()
-    site = web.TCPSite(runner, WEBAPP_HOST, WEBAPP_PORT)
-    await site.start()
-    
-    print(f"✅ Бот запущен на порту {WEBAPP_PORT}")
-    print(f"📡 Webhook готов принимать запросы по пути: {WEBHOOK_PATH}")
-    
-    # Бесконечный цикл
-    await asyncio.Event().wait()
-
-async def main_polling():
-    """Запуск в режиме polling (для отладки)"""
-    print("🤖 Бот запускается (polling режим)...")
-    print(f"✅ Токен: {'Установлен' if BOT_TOKEN else 'Требуется настройка'}")
-    print("🎮 Система геймификации: ВКЛЮЧЕНА")
-    print("📚 База вопросов: 49 заданий ОГЭ")
-    print("🏆 Достижений: 8 типов")
-    print("📖 Теория: 6 тем, 30 подтем с карточками")
-    
-    # Удаляем вебхук, если он был установлен
-    await bot.delete_webhook(drop_pending_updates=True)
-    
-    # Запускаем поллинг
-    await dp.start_polling(bot)
+    # Проверяем, есть ли корректный webhook URL
+    if WEBHOOK_URL and WEBHOOK_URL.startswith("https://"):
+        print("🔄 Режим: WEBHOOK")
+        try:
+            # Устанавливаем webhook
+            await bot.set_webhook(
+                url=WEBHOOK_URL,
+                drop_pending_updates=True
+            )
+            print(f"✅ Webhook установлен: {WEBHOOK_URL}")
+            
+            # Запускаем webhook сервер
+            app = web.Application()
+            webhook_requests_handler = SimpleRequestHandler(
+                dispatcher=dp,
+                bot=bot,
+                secret_token=BOT_TOKEN
+            )
+            webhook_requests_handler.register(app, path=WEBHOOK_PATH)
+            setup_application(app, dp, bot=bot)
+            
+            runner = web.AppRunner(app)
+            await runner.setup()
+            site = web.TCPSite(runner, WEBAPP_HOST, WEBAPP_PORT)
+            await site.start()
+            
+            print(f"✅ Бот запущен на порту {WEBAPP_PORT}")
+            print("📡 Ожидаю запросы от Telegram...")
+            
+            # Бесконечный цикл
+            await asyncio.Event().wait()
+            
+        except Exception as e:
+            print(f"❌ Ошибка webhook: {e}")
+            print("🔄 Переключаюсь на polling режим...")
+            await bot.delete_webhook(drop_pending_updates=True)
+            await dp.start_polling(bot)
+    else:
+        print("🔄 Режим: POLLING (webhook не настроен)")
+        await bot.delete_webhook(drop_pending_updates=True)
+        await dp.start_polling(bot)
 
 if __name__ == "__main__":
-    # Автоматический выбор режима в зависимости от окружения
-    if os.getenv("RAILWAY_ENVIRONMENT") or os.getenv("WEBHOOK_HOST"):
-        # Запуск в режиме webhook для Railway
-        asyncio.run(main_webhook())
-    else:
-        # Запуск в режиме polling для локальной разработки
-        asyncio.run(main_polling())
+    # Запускаем бота
+    asyncio.run(main())
+
 
