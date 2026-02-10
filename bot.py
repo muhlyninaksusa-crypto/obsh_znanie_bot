@@ -4,7 +4,7 @@ import logging
 import asyncio
 import random
 import json
-from datetime import datetime, timedelta
+from datetime import datetime
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import CommandStart, Command
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, Message
@@ -13,29 +13,6 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.enums import ParseMode
-
-# ========== HTTP СЕРВЕР ДЛЯ RAILWAY ==========
-from aiohttp import web
-
-async def handle_health_check(request):
-    """Обработчик для health checks Railway"""
-    return web.Response(text="Bot is running")
-
-async def start_http_server():
-    """Запуск HTTP сервера для Railway"""
-    app = web.Application()
-    app.router.add_get('/health', handle_health_check)
-    app.router.add_get('/', handle_health_check)
-    
-    port = int(os.getenv("PORT", 8000))
-    
-    runner = web.AppRunner(app)
-    await runner.setup()
-    site = web.TCPSite(runner, '0.0.0.0', port)
-    await site.start()
-    print(f"✅ HTTP сервер запущен на порту {port}")
-    
-    return runner
 
 # ========== ПРОВЕРКА ТОКЕНА ==========
 BOT_TOKEN = os.getenv("BOT_TOKEN")
@@ -53,18 +30,16 @@ print("✅ Токен получен из Railway Variables!")
 print("🚀 Запускаю бота...")
 
 # ========== НАСТРОЙКА ЛОГИРОВАНИЯ ==========
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
 # ========== СОЗДАНИЕ ОБЪЕКТОВ БОТА ==========
 storage = MemoryStorage()
 bot = Bot(token=BOT_TOKEN, parse_mode=ParseMode.HTML)
 dp = Dispatcher(storage=storage)
-
-# ========== СОСТОЯНИЯ ==========
-class AnswerStates(StatesGroup):
-    waiting_word_answer = State()
-    waiting_text_answer = State()
 
 # ========== СИСТЕМА ДОСТИЖЕНИЙ ==========
 ACHIEVEMENTS = {
@@ -109,322 +84,54 @@ ACHIEVEMENTS = {
         "description": "Набрать 25+ баллов в полном варианте",
         "icon": "🏆",
         "unlocked": False
-    },
-    "marathon": {
-        "name": "🏃‍♂️ Марафонщик",
-        "description": "Решить 50 заданий за один день",
-        "icon": "🏃‍♂️",
-        "unlocked": False,
-        "progress": 0,
-        "target": 50
-    },
-    "perfectionist": {
-        "name": "💎 Перфекционист",
-        "description": "10 заданий подряд без ошибок",
-        "icon": "💎",
-        "unlocked": False,
-        "progress": 0,
-        "target": 10
     }
 }
 
-# ========== ТЕМЫ С ПОДТЕМАМИ ==========
-THEORY_DETAILED = {
+# ========== ТЕОРИЯ ==========
+THEORY = {
     "Человек и общество": {
-        "Общество как система": {
-            "definition": "Общество — это часть материального мира, отделившаяся от природы, но тесно с ней связанная.",
-            "key_points": [
-                "Основные сферы: экономическая, политическая, социальная, духовная",
-                "Общество — динамическая система (изменяется со временем)",
-                "Социальные институты — устойчивые формы организации жизни",
-                "Общественные отношения — связи между людьми и группами"
-            ]
-        }
+        "Общество как система": "Общество — это часть материального мира, отделившаяся от природы, но тесно с ней связанная. Основные сферы: экономическая, политическая, социальная, духовная.",
+        "Человек как биосоциальное существо": "Человек — это существо, обладающее биологической природой (тело, инстинкты) и социальной сущностью (сознание, культура).",
+        "Деятельность человека": "Деятельность — это сознательная, целенаправленная активность человека по преобразованию мира и самого себя. Виды: игра, учение, труд, общение.",
+        "Познание": "Познание — это процесс получения знаний об окружающем мире и самом себе. Виды: чувственное и рациональное.",
+        "Межличностные отношения": "Межличностные отношения — это субъективные связи, возникающие между людьми в процессе общения."
     },
     "Экономика": {
-        "Основы экономики": {
-            "definition": "Экономика — это хозяйственная система, обеспечивающая производство, распределение, обмен и потребление благ.",
-            "key_points": [
-                "Основные вопросы: что производить? как производить? для кого производить?",
-                "Типы экономических систем: традиционная, командная, рыночная, смешанная",
-                "Товар — продукт труда, предназначенный для обмена",
-                "Услуга — деятельность, удовлетворяющая потребности"
-            ]
-        }
+        "Основы экономики": "Экономика — это хозяйственная система, обеспечивающая производство, распределение, обмен и потребление благ.",
+        "Рыночная экономика": "Рыночная экономика — это экономическая система, где цены формируются на основе спроса и предложения.",
+        "Деньги и банки": "Деньги — это особый товар, выполняющий роль всеобщего эквивалента. Функции: мера стоимости, средство обращения, средство платежа.",
+        "Налоги и бюджет": "Налоги — это обязательные платежи физических и юридических лиц государству. Виды: прямые и косвенные.",
+        "Предпринимательство": "Предпринимательство — это самостоятельная деятельность, направленная на получение прибыли."
     },
     "Социальная сфера": {
-        "Социальная структура": {
-            "definition": "Социальная структура — это строение общества, система взаимосвязей между его элементами.",
-            "key_points": [
-                "Социальная стратификация — деление общества на слои (страты)",
-                "Критерии стратификации: доход, власть, образование, престиж",
-                "Социальная мобильность — перемещение между стратами"
-            ]
-        }
+        "Социальная структура": "Социальная структура — это строение общества, система взаимосвязей между его элементами.",
+        "Семья как социальный институт": "Семья — это малая социальная группа, основанная на браке или кровном родстве.",
+        "Социальные нормы": "Социальные нормы — это правила поведения, ожидаемые от человека в обществе.",
+        "Этнические общности": "Этническая общность — это исторически сложившаяся группа людей с общей культурой, языком, самосознанием.",
+        "Молодежь как социальная группа": "Молодежь — это социально-демографическая группа в возрасте примерно от 14 до 30 лет."
     },
     "Политика": {
-        "Государство и его функции": {
-            "definition": "Государство — это организация политической власти, управляющая обществом на определенной территории.",
-            "key_points": [
-                "Признаки государства: территория, население, публичная власть, суверенитет, законы, налоги",
-                "Функции: внутренние (поддержание порядка, развитие экономики) и внешние (оборона, международные отношения)",
-                "Формы государства: монархия, республика"
-            ]
-        }
+        "Государство и его функции": "Государство — это организация политической власти, управляющая обществом на определенной территории.",
+        "Демократия и выборы": "Демократия — это форма правления, при которой власть принадлежит народу.",
+        "Политические партии": "Политическая партия — это организация, выражающая интересы социальных групп и борющаяся за власть.",
+        "Политическое участие": "Политическое участие — это действия граждан, направленные на влияние на политику.",
+        "Политическая элита": "Политическая элита — это относительно небольшая группа людей, занимающая руководящие позиции."
     },
     "Право": {
-        "Право в системе социальных норм": {
-            "definition": "Право — это система общеобязательных норм, установленных и охраняемых государством.",
-            "key_points": [
-                "Признаки права: нормативность, общеобязательность, формальная определенность, системность",
-                "Функции права: регулятивная, охранительная, воспитательная",
-                "Источники права: нормативные акты, обычаи, прецеденты, договоры"
-            ]
-        }
+        "Право в системе социальных норм": "Право — это система общеобязательных норм, установленных и охраняемых государством.",
+        "Конституция РФ": "Конституция РФ — это основной закон России, имеющий высшую юридическую силу.",
+        "Правоотношения": "Правоотношения — это общественные отношения, регулируемые правом.",
+        "Права и обязанности граждан": "Гражданин — это лицо, принадлежащее к постоянному населению государства.",
+        "Правосудие": "Правосудие — это деятельность судов по рассмотрению и разрешению дел."
     },
     "Духовная культура": {
-        "Культура и её формы": {
-            "definition": "Культура — это все материальные и духовные ценности, созданные человечеством.",
-            "key_points": [
-                "Материальная культура: здания, техника, одежда, предметы быта",
-                "Духовная культура: наука, искусство, религия, мораль, философия",
-                "Функции культуры: познавательная, воспитательная, регулятивная"
-            ]
-        }
+        "Культура и её формы": "Культура — это все материальные и духовные ценности, созданные человечеством.",
+        "Наука и образование": "Наука — это система знаний о законах развития природы, общества и мышления.",
+        "Искусство": "Искусство — это образное познание мира, выраженное в художественных образах.",
+        "Религия": "Религия — это вера в сверхъестественное и поклонение ему.",
+        "Мораль и нравственность": "Мораль — это система норм и принципов, регулирующих поведение людей с позиций добра и зла."
     }
 }
-
-# ========== ХРАНЕНИЕ ДАННЫХ ==========
-class UserState:
-    def __init__(self, user_id):
-        self.user_id = user_id
-        self.score = 0
-        self.correct_answers = 0
-        self.total_attempts = 0
-        self.current_question = None
-        self.completed_tasks = set()
-        self.exam_results = []
-        self.current_exam = None
-        self.current_exam_index = 0
-        self.exam_answers = {}
-        self.exam_score = 0
-        self.topic_stats = {}
-        self.waiting_for_answer = False
-        self.exam_topic_stats = {}
-        
-        # Геймификация
-        self.achievements = {k: v.copy() for k, v in ACHIEVEMENTS.items()}
-        self.daily_streak = 0
-        self.last_active_date = None
-        self.perfect_days_streak = 0
-        self.perfect_answers_streak = 0
-        self.topics_mastered = {topic: False for topic in THEORY_DETAILED.keys()}
-        self.subtopics_progress = {}
-        self.total_days_active = 0
-        self.daily_questions_solved = 0
-        self.last_active_day = None
-        
-        # Статистика по темам
-        for topic in THEORY_DETAILED.keys():
-            self.topic_stats[topic] = {
-                "correct": 0,
-                "total": 0,
-                "points": 0,
-                "accuracy": 0.0,
-                "questions_solved": 0
-            }
-        
-        # Прогресс по подтемам
-        self.init_subtopics_progress()
-    
-    def init_subtopics_progress(self):
-        """Инициализация прогресса по подтемам"""
-        for topic, subtopics in THEORY_DETAILED.items():
-            for subtopic_name in subtopics.keys():
-                key = f"{topic}__{subtopic_name}"
-                self.subtopics_progress[key] = {
-                    "viewed": False,
-                    "questions_answered": 0,
-                    "correct_answers": 0,
-                    "accuracy": 0.0,
-                    "mastered": False
-                }
-    
-    def add_result(self, is_correct, points=1, topic=""):
-        self.total_attempts += 1
-        self.daily_questions_solved += 1
-        
-        if is_correct:
-            self.correct_answers += 1
-            self.score += points
-            self.perfect_answers_streak += 1
-            if self.perfect_answers_streak > self.achievements["perfectionist"]["progress"]:
-                self.achievements["perfectionist"]["progress"] = self.perfect_answers_streak
-        else:
-            self.perfect_answers_streak = 0
-        
-        if self.current_question:
-            self.completed_tasks.add(self.current_question["id"])
-        
-        # Обновляем статистику по теме
-        if topic and topic in self.topic_stats:
-            self.topic_stats[topic]["total"] += 1
-            if is_correct:
-                self.topic_stats[topic]["correct"] += 1
-                self.topic_stats[topic]["points"] += points
-            
-            if self.topic_stats[topic]["total"] > 0:
-                self.topic_stats[topic]["accuracy"] = (
-                    self.topic_stats[topic]["correct"] / self.topic_stats[topic]["total"] * 100
-                )
-            
-            self.topic_stats[topic]["questions_solved"] += 1
-            
-            # Проверяем, освоена ли тема
-            if (self.topic_stats[topic]["total"] >= 5 and 
-                self.topic_stats[topic]["accuracy"] >= 80):
-                self.topics_mastered[topic] = True
-        
-        # Проверяем достижения
-        self.check_achievements()
-        
-        return is_correct
-    
-    def add_exam_result(self, is_correct, points=1, topic=""):
-        if topic:
-            if topic not in self.exam_topic_stats:
-                self.exam_topic_stats[topic] = {"correct": 0, "total": 0, "points": 0}
-            self.exam_topic_stats[topic]["total"] += 1
-            if is_correct:
-                self.exam_topic_stats[topic]["correct"] += 1
-                self.exam_topic_stats[topic]["points"] += points
-    
-    def update_daily_streak(self):
-        today = datetime.now().date()
-        today_str = today.strftime("%Y-%m-%d")
-        
-        # Сбрасываем счетчик ежедневных вопросов если новый день
-        if self.last_active_day != today_str:
-            self.daily_questions_solved = 0
-            self.last_active_day = today_str
-        
-        if self.last_active_date:
-            try:
-                last_date = datetime.strptime(self.last_active_date, "%Y-%m-%d").date()
-                difference = (today - last_date).days
-                
-                if difference == 1:  # Последний раз был вчера
-                    self.daily_streak += 1
-                    self.perfect_days_streak += 1
-                    self.total_days_active += 1
-                elif difference > 1:  # Пропустил день
-                    self.daily_streak = 1
-                    self.perfect_days_streak = 0
-                    self.total_days_active += 1
-            except ValueError:
-                # Ошибка в формате даты
-                self.daily_streak = 1
-                self.perfect_days_streak = 1
-                self.total_days_active = 1
-        else:
-            # Первое посещение
-            self.daily_streak = 1
-            self.perfect_days_streak = 1
-            self.total_days_active = 1
-        
-        self.last_active_date = today_str
-        self.check_achievements()
-    
-    def check_achievements(self):
-        # Первый шаг
-        if not self.achievements["first_step"]["unlocked"] and self.total_attempts >= 1:
-            self.achievements["first_step"]["unlocked"] = True
-        
-        # Эксперт по Конституции
-        if "Право" in self.topic_stats:
-            right_count = self.topic_stats["Право"]["correct"]
-            self.achievements["constitution_expert"]["progress"] = right_count
-            if right_count >= 10:
-                self.achievements["constitution_expert"]["unlocked"] = True
-        
-        # Неделя без ошибок
-        self.achievements["perfect_week"]["progress"] = self.perfect_days_streak
-        if self.perfect_days_streak >= 7:
-            self.achievements["perfect_week"]["unlocked"] = True
-        
-        # Активный месяц
-        self.achievements["active_month"]["progress"] = self.daily_streak
-        if self.daily_streak >= 30:
-            self.achievements["active_month"]["unlocked"] = True
-        
-        # Освоил все темы
-        topics_mastered = sum(1 for mastered in self.topics_mastered.values() if mastered)
-        if topics_mastered == len(THEORY_DETAILED):
-            self.achievements["all_topics"]["unlocked"] = True
-        
-        # Мастер ОГЭ
-        if self.exam_score >= 25:
-            self.achievements["oge_master"]["unlocked"] = True
-        
-        # Марафонщик
-        self.achievements["marathon"]["progress"] = self.daily_questions_solved
-        if self.daily_questions_solved >= 50:
-            self.achievements["marathon"]["unlocked"] = True
-        
-        # Перфекционист
-        if self.perfect_answers_streak >= 10:
-            self.achievements["perfectionist"]["unlocked"] = True
-    
-    def get_weak_topics(self, limit=3):
-        """Возвращает темы для повторения"""
-        weak_topics = []
-        for topic, stats in self.topic_stats.items():
-            if stats["total"] >= 3 and stats["accuracy"] < 70:
-                weak_topics.append({
-                    "topic": topic,
-                    "accuracy": stats["accuracy"],
-                    "correct": stats["correct"],
-                    "total": stats["total"]
-                })
-        
-        # Сортируем по точности (от худшей к лучшей)
-        weak_topics.sort(key=lambda x: x["accuracy"])
-        return weak_topics[:limit]
-    
-    def get_progress_summary(self):
-        """Полная статистика пользователя"""
-        accuracy = (self.correct_answers / self.total_attempts * 100) if self.total_attempts > 0 else 0
-        
-        # Считаем освоенные подтемы
-        subtopics_mastered = sum(1 for sub in self.subtopics_progress.values() 
-                               if sub["questions_answered"] >= 3 and sub["accuracy"] >= 80)
-        
-        summary = {
-            "total_score": self.score,
-            "accuracy": round(accuracy, 1),
-            "days_streak": self.daily_streak,
-            "perfect_days_streak": self.perfect_days_streak,
-            "perfect_answers_streak": self.perfect_answers_streak,
-            "total_days_active": self.total_days_active,
-            "total_questions": self.total_attempts,
-            "correct_answers": self.correct_answers,
-            "daily_questions": self.daily_questions_solved,
-            "topics_mastered": sum(1 for mastered in self.topics_mastered.values() if mastered),
-            "total_topics": len(THEORY_DETAILED),
-            "subtopics_mastered": subtopics_mastered,
-            "total_subtopics": len(self.subtopics_progress),
-            "achievements_unlocked": sum(1 for ach in self.achievements.values() if ach["unlocked"]),
-            "total_achievements": len(self.achievements)
-        }
-        
-        return summary
-
-user_data = {}
-
-def get_user_state(user_id):
-    if user_id not in user_data:
-        user_data[user_id] = UserState(user_id)
-    return user_data[user_id]
 
 # ========== ВСЕ 49 ВОПРОСОВ ==========
 QUESTIONS = {
@@ -466,7 +173,7 @@ QUESTIONS = {
     },
     5: {
         "id": 5,
-        "text": "📸 <b>ФОТОГРАФИЯ:</b> Семья за праздничным столом\n\nКакая функция семьи проиллюстрирована на фотографии? Назовите ещё две функции семьи.",
+        "text": "📸 ФОТОГРАФИЯ: Семья за праздничным столом\n\nКакая функция семьи проиллюстрирована на фотографии? Назовите ещё две функции семьи.",
         "correct_answers": ["Воспитательная функция", "Репродуктивная функция", "Хозяйственная функция"],
         "explanation": "✅ На фото показана воспитательная функция (семейные традиции, передача ценностей). Другие функции семьи: репродуктивная (рождение детей) и хозяйственная (ведение домашнего хозяйства).",
         "topic": "Социальная сфера",
@@ -526,7 +233,7 @@ QUESTIONS = {
     11: {
         "id": 11,
         "text": "Под обществом в широком смысле понимают:\n\n1) все население Земли в прошлом, настоящем и будущем\n2) единство живой и неживой природы\n3) весь мир в многообразии его форм и проявлений\n4) определенный этап исторического развития",
-        "options": ["все население Земли в прошлом, настоящем и будущем", "единство жиной и неживой природы", "весь мир в многообразии его форм и проявлений", "определенный этап исторического развития"],
+        "options": ["все население Земли в прошлом, настоящем и будущем", "единство живой и неживой природы", "весь мир в многообразии его форм и проявлений", "определенный этап исторического развития"],
         "correct": 0,
         "explanation": "✅ Правильно: все население Земли в прошлом, настоящем и будущем. Это самое широкое определение общества.",
         "topic": "Человек и общество",
@@ -535,7 +242,7 @@ QUESTIONS = {
     },
     12: {
         "id": 12,
-        "text": "📊 <b>ДИАГРАММА:</b> Результаты опроса в странах Z и Y на тему «Что Вы думаете об уплате налогов?»\n\nСтрана Z: Долг - 75%, Договор - 25%\nСтрана Y: Долг - 40%, Договор - 60%\n\nСформулируйте по одному выводу: а) о сходстве и б) о различии в позициях групп опрошенных.",
+        "text": "📊 ДИАГРАММА: Результаты опроса в странах Z и Y на тему «Что Вы думаете об уплате налогов?»\n\nСтрана Z: Долг - 75%, Договор - 25%\nСтрана Y: Долг - 40%, Договор - 60%\n\nСформулируйте по одному выводу: а) о сходстве и б) о различии в позициях групп опрошенных.",
         "correct_answers": [
             "Сходство: в обеих странах есть граждане, считающие налоги и долгом, и договором",
             "Различие: в стране Z больше граждан считают налоги долгом, а в стране Y - договором"
@@ -548,7 +255,7 @@ QUESTIONS = {
     13: {
         "id": 13,
         "text": "Что из перечисленного характеризует демократический режим?\n\n1) верховенство исполнительной власти\n2) командно-административные методы управления\n3) господство одной общеобязательной идеологии\n4) защита прав и свобод граждан",
-        "options": ["верховенство исполнительной власти", "командно-административные методы управления", "господство одной общеобязательной идеологии", "защита прав и свобод граждан"],
+        "options": ["верховенство исполнительной власти", "командно-административные методы управления", "господство одной общеобязательной идеологии", "защита прав и свободы граждан"],
         "correct": 3,
         "explanation": "✅ Правильно: защита прав и свобод граждан - основной признак демократии.",
         "topic": "Политика",
@@ -587,7 +294,7 @@ QUESTIONS = {
     },
     17: {
         "id": 17,
-        "text": "📸 <b>ФОТОГРАФИЯ:</b> Женщина покупает товары в супермаркете, изучает этикетку.\n\nКакой вид экономической деятельности показан? Сформулируйте два правила рационального поведения потребителя.",
+        "text": "📸 ФОТОГРАФИЯ: Женщина покупает товары в супермаркете, изучает этикетку.\n\nКакой вид экономической деятельности показан? Сформулируйте два правила рационального поведения потребителя.",
         "correct_answers": ["Розничная торговля", "Изучать состав и срок годности товаров", "Сохранять чеки для возможного возврата товара"],
         "explanation": "✅ Показана розничная торговля. Правила потребителя: 1) Изучать информацию о товаре, 2) Сохранять документы о покупке.",
         "topic": "Экономика",
@@ -862,9 +569,9 @@ QUESTIONS = {
     44: {
         "id": 44,
         "text": "Что является примером социального конфликта?\n\n1) спор покупателя и продавца\n2) разногласия между политическими партиями\n3) забастовка рабочих\n4) все перечисленные",
-        "options": ["спор покупателя и продавца", "разногласия между политическими партиями", "забастовка рабочих", "все перечисленные"],
+        "options": ["спор покупателя и продавца", "разногласия между политическими партияи", "забастовка рабочих", "все перечисленные"],
         "correct": 3,
-        "explanation": "✅ Правильно: все перечисленные. Социальный конфликт - столкновение интересов социальных групп. Все примеры относятся к конфликтам.",
+        "explanation": "✅ Правильно: все перечисленные. Социальный конфликт - столкновение интересов социальных групп.",
         "topic": "Социальная сфера",
         "points": 1,
         "type": "single_choice"
@@ -921,6 +628,115 @@ QUESTIONS = {
     }
 }
 
+# ========== ХРАНЕНИЕ ДАННЫХ ==========
+class UserState:
+    def __init__(self, user_id):
+        self.user_id = user_id
+        self.score = 0
+        self.correct_answers = 0
+        self.total_attempts = 0
+        self.current_question = None
+        self.waiting_for_answer = False
+        self.current_exam = None
+        self.current_exam_index = 0
+        self.exam_score = 0
+        
+        # Геймификация
+        self.achievements = {k: v.copy() for k, v in ACHIEVEMENTS.items()}
+        self.daily_streak = 0
+        self.last_active_date = None
+        self.perfect_answers_streak = 0
+        self.daily_questions_solved = 0
+        
+        # Статистика по темам
+        self.topic_stats = {topic: {"correct": 0, "total": 0} for topic in THEORY.keys()}
+    
+    def add_result(self, is_correct, points=1, topic=""):
+        self.total_attempts += 1
+        self.daily_questions_solved += 1
+        
+        if is_correct:
+            self.correct_answers += 1
+            self.score += points
+            self.perfect_answers_streak += 1
+        else:
+            self.perfect_answers_streak = 0
+        
+        # Обновляем статистику по теме
+        if topic and topic in self.topic_stats:
+            self.topic_stats[topic]["total"] += 1
+            if is_correct:
+                self.topic_stats[topic]["correct"] += 1
+        
+        # Проверяем достижения
+        self.check_achievements()
+        
+        return is_correct
+    
+    def update_daily_streak(self):
+        today = datetime.now().date()
+        today_str = today.strftime("%Y-%m-%d")
+        
+        if self.last_active_date != today_str:
+            self.daily_questions_solved = 0
+        
+        if self.last_active_date:
+            try:
+                last_date = datetime.strptime(self.last_active_date, "%Y-%m-%d").date()
+                difference = (today - last_date).days
+                
+                if difference == 1:
+                    self.daily_streak += 1
+                elif difference > 1:
+                    self.daily_streak = 1
+            except ValueError:
+                self.daily_streak = 1
+        else:
+            self.daily_streak = 1
+        
+        self.last_active_date = today_str
+        self.check_achievements()
+    
+    def check_achievements(self):
+        # Первый шаг
+        if not self.achievements["first_step"]["unlocked"] and self.total_attempts >= 1:
+            self.achievements["first_step"]["unlocked"] = True
+        
+        # Эксперт по Конституции
+        if "Право" in self.topic_stats:
+            right_count = self.topic_stats["Право"]["correct"]
+            self.achievements["constitution_expert"]["progress"] = right_count
+            if right_count >= 10:
+                self.achievements["constitution_expert"]["unlocked"] = True
+        
+        # Мастер ОГЭ
+        if self.exam_score >= 25:
+            self.achievements["oge_master"]["unlocked"] = True
+    
+    def get_progress_summary(self):
+        accuracy = (self.correct_answers / self.total_attempts * 100) if self.total_attempts > 0 else 0
+        
+        summary = {
+            "total_score": self.score,
+            "accuracy": round(accuracy, 1),
+            "days_streak": self.daily_streak,
+            "perfect_answers_streak": self.perfect_answers_streak,
+            "total_questions": self.total_attempts,
+            "correct_answers": self.correct_answers,
+            "daily_questions": self.daily_questions_solved,
+            "achievements_unlocked": sum(1 for ach in self.achievements.values() if ach["unlocked"]),
+            "total_achievements": len(self.achievements)
+        }
+        
+        return summary
+
+user_data = {}
+
+def get_user_state(user_id):
+    if user_id not in user_data:
+        user_data[user_id] = UserState(user_id)
+    return user_data[user_id]
+
 # ========== КЛАВИАТУРЫ ==========
 def get_main_keyboard():
     builder = ReplyKeyboardBuilder()
@@ -929,60 +745,33 @@ def get_main_keyboard():
         "🎯 ЗАДАНИЯ",
         "📝 ПОЛНЫЙ ОГЭ",
         "🏆 ДОСТИЖЕНИЯ",
-        "📊 СТАТИСТИКА",
-        "🔄 ПОВТОРИТЬ"
+        "📊 СТАТИСТИКА"
     ]
     for button in buttons:
         builder.add(KeyboardButton(text=button))
-    builder.adjust(2, 2, 2)
+    builder.adjust(2, 2, 1)
     return builder.as_markup(resize_keyboard=True)
 
 def get_theory_keyboard():
     builder = InlineKeyboardBuilder()
     
-    topics = [
-        ("🧑‍🎓 Человек и общество", "theory_topic_Человек и общество"),
-        ("💰 Экономика", "theory_topic_Экономика"),
-        ("👥 Социальная сфера", "theory_topic_Социальная сфера"),
-        ("🏛️ Политика", "theory_topic_Политика"),
-        ("⚖️ Право", "theory_topic_Право"),
-        ("🎨 Духовная культура", "theory_topic_Духовная культура"),
-        ("🔙 НАЗАД", "back_main")
-    ]
+    for topic in THEORY.keys():
+        builder.button(text=topic, callback_data=f"theory_{topic}")
     
-    for text, callback in topics:
-        builder.button(text=text, callback_data=callback)
-    
-    builder.adjust(2)
-    return builder.as_markup()
-
-def get_subtopics_keyboard(topic_name):
-    builder = InlineKeyboardBuilder()
-    
-    if topic_name in THEORY_DETAILED:
-        for subtopic_name in THEORY_DETAILED[topic_name].keys():
-            callback_data = f"subtopic_{topic_name}_{subtopic_name.replace(' ', '_')}"
-            builder.button(text=f"📖 {subtopic_name}", callback_data=callback_data)
-    
-    builder.button(text="◀️ НАЗАД К ТЕМАМ", callback_data="back_theory")
+    builder.button(text="🔙 НАЗАД", callback_data="back_main")
     builder.adjust(1)
     return builder.as_markup()
 
 def get_tasks_keyboard():
     builder = InlineKeyboardBuilder()
     
-    groups = [
-        ("1️⃣ 1-10", "group_1_10"),
-        ("2️⃣ 11-20", "group_11_20"),
-        ("3️⃣ 21-30", "group_21_30"),
-        ("4️⃣ 31-40", "group_31_40"),
-        ("5️⃣ 41-49", "group_41_49"),
-        ("🎲 СЛУЧАЙНОЕ", "random_task"),
-        ("🔙 НАЗАД", "back_main")
-    ]
-    
-    for text, callback in groups:
-        builder.button(text=text, callback_data=callback)
+    builder.button(text="1️⃣ 1-10", callback_data="group_1_10")
+    builder.button(text="2️⃣ 11-20", callback_data="group_11_20")
+    builder.button(text="3️⃣ 21-30", callback_data="group_21_30")
+    builder.button(text="4️⃣ 31-40", callback_data="group_31_40")
+    builder.button(text="5️⃣ 41-49", callback_data="group_41_49")
+    builder.button(text="🎲 СЛУЧАЙНОЕ", callback_data="random_task")
+    builder.button(text="🔙 НАЗАД", callback_data="back_main")
     
     builder.adjust(2, 2, 2, 1)
     return builder.as_markup()
@@ -994,34 +783,8 @@ def get_group_tasks_keyboard(start, end):
         if num in QUESTIONS:
             builder.button(text=f"№{num}", callback_data=f"task_{num}")
     
-    builder.button(text="◀️ НАЗАД К ГРУППАМ", callback_data="back_to_tasks")
+    builder.button(text="◀️ НАЗАД", callback_data="back_to_tasks")
     builder.adjust(3)
-    return builder.as_markup()
-
-def get_answer_keyboard(question_id, question_type, is_exam=False):
-    builder = InlineKeyboardBuilder()
-    
-    if question_type == "single_choice":
-        builder.button(text="🔘 ВЫБРАТЬ ОДИН ВАРИАНТ", callback_data=f"single_{question_id}")
-    else:
-        builder.button(text="📝 НАПИСАТЬ ОТВЕТ", callback_data=f"text_{question_id}")
-    
-    if not is_exam:
-        builder.button(text="📚 ТЕОРИЯ ПО ТЕМЕ", callback_data=f"show_theory_{question_id}")
-        builder.button(text="🎲 СЛУЧАЙНОЕ", callback_data="random_task")
-    else:
-        builder.button(text="➡️ СЛЕДУЮЩЕЕ", callback_data="exam_next")
-    
-    builder.adjust(1, 2)
-    return builder.as_markup()
-
-def get_options_keyboard(options, question_id):
-    builder = InlineKeyboardBuilder()
-    for i, option in enumerate(options):
-        builder.button(text=f"{i+1}. {option[:30]}", callback_data=f"answer_{question_id}_{i}")
-    
-    builder.button(text="🔙 НАЗАД", callback_data=f"back_to_question_{question_id}")
-    builder.adjust(1)
     return builder.as_markup()
 
 # ========== ОБРАБОТЧИКИ КОМАНД ==========
@@ -1035,23 +798,13 @@ async def start_command(message: Message):
     welcome = f"""
 👋 <b>Привет, {message.from_user.first_name}!</b>
 
-📚 <b>БОТ ДЛЯ ПОДГОТОВКИ К ОГЭ</b> с полной геймификацией!
+📚 <b>БОТ ДЛЯ ПОДГОТОВКИ К ОГЭ</b>
 
 🏆 <b>Ваш прогресс:</b>
 • Решено заданий: {progress['total_questions']} ✅
 • Точность: {progress['accuracy']}% 🎯
 • Дней подряд: {progress['days_streak']} 📅
 • Достижений: {progress['achievements_unlocked']}/{progress['total_achievements']} 🏅
-
-🎮 <b>Система достижений:</b>
-• 🚀 Первый шаг
-• ⚖️ Эксперт по Конституции  
-• ⭐ Неделя без ошибок
-• 🔥 Активный месяц (30 дней)
-• 🎓 Освоил все темы
-• 🏆 Мастер ОГЭ (25+ баллов)
-• 🏃‍♂️ Марафонщик (50 заданий в день)
-• 💎 Перфекционист (10 подряд без ошибок)
 
 🎯 <b>Выберите действие:</b>
 """
@@ -1066,16 +819,14 @@ async def help_command(message: Message):
 <b>Основные команды:</b>
 /start - Запустить бота
 /help - Эта справка
-/ping - Проверить работу бота
 /stats - Ваша статистика
 
 <b>Меню:</b>
-📚 ТЕОРИЯ - Подробные материалы по всем темам
-🎯 ЗАДАНИЯ - 49 заданий ОГЭ с ответами
-📝 ПОЛНЫЙ ОГЭ - Пройти полный вариант экзамена
+📚 ТЕОРИЯ - Материалы по всем темам
+🎯 ЗАДАНИЯ - 49 заданий ОГЭ
+📝 ПОЛНЫЙ ОГЭ - Пройти полный вариант
 🏆 ДОСТИЖЕНИЯ - Система геймификации
 📊 СТАТИСТИКА - Ваш прогресс
-🔄 ПОВТОРИТЬ - Рекомендации по повторению
 """
     await message.answer(help_text)
 
@@ -1085,7 +836,6 @@ async def stats_command(message: Message):
     user_state.update_daily_streak()
     
     progress = user_state.get_progress_summary()
-    weak_topics = user_state.get_weak_topics(3)
     
     stats_text = f"""
 📊 <b>ВАША СТАТИСТИКА</b>
@@ -1094,44 +844,29 @@ async def stats_command(message: Message):
 • Всего заданий: {progress['total_questions']}
 • Правильных: {progress['correct_answers']} ({progress['accuracy']}%)
 • Накоплено баллов: {progress['total_score']}
-• Освоено тем: {progress['topics_mastered']}/{progress['total_topics']}
-• Освоено подтем: {progress['subtopics_mastered']}/{progress['total_subtopics']}
 
 📅 <b>Активность:</b>
 • Дней подряд: {progress['days_streak']} 📅
-• Дней без ошибок: {progress['perfect_days_streak']} ⭐
 • Правильных подряд: {progress['perfect_answers_streak']} 🔥
-• Всего активных дней: {progress['total_days_active']}
 • Заданий сегодня: {progress['daily_questions']}
 
 🏆 <b>Достижения:</b>
 • Открыто: {progress['achievements_unlocked']}/{progress['total_achievements']}
 """
     
-    if weak_topics:
-        stats_text += "\n<b>🔄 Рекомендуем повторить:</b>\n"
-        for i, topic in enumerate(weak_topics, 1):
-            stats_text += f"{i}. {topic['topic']} - {topic['accuracy']:.1f}%\n"
-    
     await message.answer(stats_text)
-
-@dp.message(Command("ping"))
-async def ping_command(message: Message):
-    await message.answer("🏓 Pong! Бот работает исправно.")
 
 @dp.message(F.text == "📚 ТЕОРИЯ")
 async def theory_command(message: Message):
     await message.answer(
-        "📚 <b>ВЫБЕРИТЕ ТЕМУ:</b>\n\n"
-        "Каждая тема разделена на подтемы с подробными карточками.",
+        "📚 <b>ВЫБЕРИТЕ ТЕМУ:</b>",
         reply_markup=get_theory_keyboard()
     )
 
 @dp.message(F.text == "🎯 ЗАДАНИЯ")
 async def tasks_command(message: Message):
     await message.answer(
-        "🎯 <b>ЗАДАНИЯ ОГЭ (1-49):</b>\n\n"
-        "Выберите группу заданий для решения.",
+        "🎯 <b>ЗАДАНИЯ ОГЭ (1-49):</b>\n\nВыберите группу заданий:",
         reply_markup=get_tasks_keyboard()
     )
 
@@ -1142,41 +877,24 @@ async def achievements_command(message: Message):
     
     progress = user_state.get_progress_summary()
     
-    await message.answer(
-        f"🏆 <b>СИСТЕМА ДОСТИЖЕНИЙ</b>\n\n"
-        f"Открыто: {progress['achievements_unlocked']}/{progress['total_achievements']}\n\n"
-        f"Выберите опцию:",
-        reply_markup=InlineKeyboardBuilder()
-            .button(text="🎖️ МОИ ДОСТИЖЕНИЯ", callback_data="my_achievements")
-            .button(text="📈 ПРОГРЕСС", callback_data="my_progress")
-            .button(text="🔙 НАЗАД", callback_data="back_main")
-            .adjust(1)
-            .as_markup()
-    )
+    achievements_text = f"""
+🏆 <b>ВАШИ ДОСТИЖЕНИЯ:</b>
+
+Открыто: {progress['achievements_unlocked']}/{progress['total_achievements']}
+"""
+    
+    for key, achievement in user_state.achievements.items():
+        status = "✅" if achievement["unlocked"] else "🔒"
+        achievements_text += f"\n{status} {achievement['name']}"
+        achievements_text += f"\n<i>{achievement['description']}</i>"
+        if "progress" in achievement:
+            achievements_text += f" ({achievement['progress']}/{achievement['target']})"
+    
+    await message.answer(achievements_text)
 
 @dp.message(F.text == "📊 СТАТИСТИКА")
 async def stats_menu_command(message: Message):
     await stats_command(message)
-
-@dp.message(F.text == "🔄 ПОВТОРИТЬ")
-async def repeat_command(message: Message):
-    user_state = get_user_state(message.from_user.id)
-    user_state.update_daily_streak()
-    
-    weak_topics = user_state.get_weak_topics(3)
-    
-    if weak_topics:
-        text = "📚 <b>РЕКОМЕНДУЕМ ПОВТОРИТЬ:</b>\n\n"
-        for i, topic in enumerate(weak_topics, 1):
-            text += f"{i}. <b>{topic['topic']}</b>\n"
-            text += f"   Точность: {topic['accuracy']:.1f}% ({topic['correct']}/{topic['total']})\n\n"
-        
-        await message.answer(text)
-    else:
-        await message.answer(
-            "✅ <b>Все темы освоены хорошо!</b>\n\n"
-            "Продолжайте в том же духе или попробуйте полный вариант ОГЭ."
-        )
 
 @dp.message(F.text == "📝 ПОЛНЫЙ ОГЭ")
 async def full_exam_command(message: Message):
@@ -1191,21 +909,16 @@ async def full_exam_command(message: Message):
             question["task_number"] = i
             exam_questions.append(question)
     
-    if not exam_questions:
-        await message.answer("❌ Нет доступных заданий для экзамена.")
-        return
-    
     user_state.current_exam = exam_questions
     user_state.current_exam_index = 0
     user_state.exam_score = 0
-    user_state.exam_answers = {}
-    user_state.exam_topic_stats = {}
-    user_state.perfect_answers_streak = 0
     
     await message.answer(
         "📝 <b>НАЧИНАЕМ ПОЛНЫЙ ВАРИАНТ ОГЭ!</b>\n\n"
-        "Вам предстоит 49 заданий в правильном порядке как в реальном экзамене.\n"
-        "Отвечайте словами, цифрами или выбирайте варианты.\n\n"
+        "Вам предстоит 49 заданий.\n\n"
+        "Для ответов:\n"
+        "1. На вопросы с вариантами - пишите номер ответа\n"
+        "2. На текстовые вопросы - пишите развернутый ответ\n\n"
         "<i>Начинаем с задания 1...</i>"
     )
     
@@ -1219,55 +932,24 @@ async def back_main_callback(callback: types.CallbackQuery):
     await callback.message.delete()
     await callback.message.answer("Главное меню:", reply_markup=get_main_keyboard())
 
-@dp.callback_query(F.data == "back_theory")
-async def back_theory_callback(callback: types.CallbackQuery):
-    await callback.message.edit_text(
-        "📚 <b>ВЫБЕРИТЕ ТЕМУ:</b>",
-        reply_markup=get_theory_keyboard()
-    )
-
 @dp.callback_query(F.data == "back_to_tasks")
 async def back_to_tasks_callback(callback: types.CallbackQuery):
     await callback.message.edit_text(
-        "🎯 <b>ЗАДАНИЯ ОГЭ (1-49):</b>",
+        "🎯 <b>ЗАДАНИЯ ОГЭ (1-49):</b>\n\nВыберите группу заданий:",
         reply_markup=get_tasks_keyboard()
     )
 
-@dp.callback_query(F.data.startswith("theory_topic_"))
+@dp.callback_query(F.data.startswith("theory_"))
 async def theory_topic_callback(callback: types.CallbackQuery):
-    topic_name = callback.data.replace("theory_topic_", "")
+    topic = callback.data.replace("theory_", "")
     
-    if topic_name in THEORY_DETAILED:
-        text = f"📚 <b>{topic_name}</b>\n\nВыберите подтему для изучения:"
-        await callback.message.edit_text(text, reply_markup=get_subtopics_keyboard(topic_name))
-
-@dp.callback_query(F.data.startswith("subtopic_"))
-async def subtopic_callback(callback: types.CallbackQuery):
-    data = callback.data.replace("subtopic_", "").split("_", 1)
-    topic_name = data[0]
-    subtopic_encoded = data[1] if len(data) > 1 else ""
-    subtopic_name = subtopic_encoded.replace("_", " ")
-    
-    if (topic_name in THEORY_DETAILED and 
-        subtopic_name in THEORY_DETAILED[topic_name]):
+    if topic in THEORY:
+        text = f"<b>{topic}</b>\n\n"
         
-        subtopic_data = THEORY_DETAILED[topic_name][subtopic_name]
+        for subtopic, content in THEORY[topic].items():
+            text += f"<b>{subtopic}:</b>\n{content}\n\n"
         
-        card_text = f"""
-📖 <b>{subtopic_name}</b>
-
-📌 <b>Определение:</b>
-{subtopic_data['definition']}
-
-🔑 <b>Ключевые моменты:</b>
-"""
-        for point in subtopic_data['key_points']:
-            card_text += f"• {point}\n"
-        
-        keyboard = InlineKeyboardBuilder()
-        keyboard.button(text="◀️ НАЗАД К ПОДТЕМАМ", callback_data=f"theory_topic_{topic_name}")
-        
-        await callback.message.edit_text(card_text, reply_markup=keyboard.as_markup())
+        await callback.message.edit_text(text[:4000])
 
 @dp.callback_query(F.data.startswith("group_"))
 async def group_callback(callback: types.CallbackQuery):
@@ -1276,17 +958,6 @@ async def group_callback(callback: types.CallbackQuery):
         return
     
     start, end = int(data[0]), int(data[1])
-    
-    # Проверяем, есть ли задания в этом диапазоне
-    has_questions = False
-    for i in range(start, end + 1):
-        if i in QUESTIONS:
-            has_questions = True
-            break
-    
-    if not has_questions:
-        await callback.answer("❌ Нет заданий в этом диапазоне", show_alert=True)
-        return
     
     await callback.message.edit_text(
         f"<b>🎯 ЗАДАНИЯ {start}-{end}</b>\n\nВыберите номер задания:",
@@ -1298,450 +969,266 @@ async def task_callback(callback: types.CallbackQuery):
     try:
         task_num = int(callback.data.replace("task_", ""))
     except ValueError:
-        await callback.answer("❌ Неверный номер задания", show_alert=True)
         return
     
     if task_num in QUESTIONS:
         question = QUESTIONS[task_num]
         user_state = get_user_state(callback.from_user.id)
         user_state.update_daily_streak()
+        user_state.current_question = question
+        user_state.waiting_for_answer = True
         
-        await send_question(callback.from_user.id, question, edit_message=callback.message)
-    else:
-        await callback.answer(f"❌ Задание №{task_num} не найдено", show_alert=True)
+        text = f"<b>🎯 ЗАДАНИЕ №{task_num}</b>\n\n"
+        text += f"📚 Тема: {question['topic']}\n"
+        text += f"⭐ Баллы: {question['points']}\n\n"
+        text += question['text']
+        
+        keyboard = InlineKeyboardBuilder()
+        
+        if question["type"] == "single_choice":
+            keyboard.button(text="📝 ВВЕСТИ НОМЕР ОТВЕТА", callback_data="answer_input")
+        else:
+            keyboard.button(text="📝 ВВЕСТИ ТЕКСТОВЫЙ ОТВЕТ", callback_data="answer_input")
+        
+        keyboard.button(text="🎲 СЛУЧАЙНОЕ ЗАДАНИЕ", callback_data="random_task")
+        keyboard.adjust(1)
+        
+        await callback.message.edit_text(text, reply_markup=keyboard.as_markup())
 
 @dp.callback_query(F.data == "random_task")
 async def random_task_callback(callback: types.CallbackQuery):
-    if QUESTIONS:
-        task_num = random.choice(list(QUESTIONS.keys()))
-        question = QUESTIONS[task_num]
-        user_state = get_user_state(callback.from_user.id)
-        user_state.update_daily_streak()
-        
-        await send_question(callback.from_user.id, question, edit_message=callback.message)
-    else:
-        await callback.answer("❌ Нет доступных заданий", show_alert=True)
-
-@dp.callback_query(F.data == "my_achievements")
-async def my_achievements_callback(callback: types.CallbackQuery):
-    user_state = get_user_state(callback.from_user.id)
-    
-    achievements_text = "🏆 <b>ВАШИ ДОСТИЖЕНИЯ:</b>\n\n"
-    
-    unlocked_count = 0
-    for key, achievement in user_state.achievements.items():
-        icon = achievement["icon"]
-        name = achievement["name"]
-        desc = achievement["description"]
-        
-        if achievement["unlocked"]:
-            achievements_text += f"{icon} <b>{name}</b> - ✅ ОТКРЫТО\n"
-            achievements_text += f"<i>{desc}</i>\n\n"
-            unlocked_count += 1
-        else:
-            achievements_text += f"🔒 {name}\n"
-            achievements_text += f"<i>{desc}</i>\n\n"
-    
-    achievements_text += f"<b>Итого:</b> {unlocked_count}/{len(user_state.achievements)} достижений"
-    
-    keyboard = InlineKeyboardBuilder()
-    keyboard.button(text="🔙 НАЗАД", callback_data="back_achievements_menu")
-    keyboard.adjust(1)
-    
-    await callback.message.edit_text(achievements_text, reply_markup=keyboard.as_markup())
-
-@dp.callback_query(F.data == "my_progress")
-async def my_progress_callback(callback: types.CallbackQuery):
-    user_state = get_user_state(callback.from_user.id)
-    progress = user_state.get_progress_summary()
-    
-    progress_text = f"""
-📊 <b>ВАШ ПРОГРЕСС:</b>
-
-🎯 <b>Общая успеваемость:</b>
-• Точность: {progress['accuracy']}%
-• Баллы: {progress['total_score']}
-• Решено: {progress['total_questions']} заданий
-• Правильных подряд: {progress['perfect_answers_streak']}
-
-📅 <b>Активность:</b>
-• Серия дней: {progress['days_streak']} 📅
-• Идеальная серия: {progress['perfect_days_streak']} ⭐
-• Всего дней: {progress['total_days_active']}
-• Заданий сегодня: {progress['daily_questions']}
-"""
-    
-    keyboard = InlineKeyboardBuilder()
-    keyboard.button(text="🔙 НАЗАД", callback_data="back_achievements_menu")
-    keyboard.adjust(1)
-    
-    await callback.message.edit_text(progress_text, reply_markup=keyboard.as_markup())
-
-@dp.callback_query(F.data == "back_achievements_menu")
-async def back_achievements_menu_callback(callback: types.CallbackQuery):
-    user_state = get_user_state(callback.from_user.id)
-    progress = user_state.get_progress_summary()
-    
-    await callback.message.edit_text(
-        f"🏆 <b>СИСТЕМА ДОСТИЖЕНИЙ</b>\n\n"
-        f"Открыто: {progress['achievements_unlocked']}/{progress['total_achievements']}\n\n"
-        f"Выберите опцию:",
-        reply_markup=InlineKeyboardBuilder()
-            .button(text="🎖️ МОИ ДОСТИЖЕНИЯ", callback_data="my_achievements")
-            .button(text="📈 ПРОГРЕСС", callback_data="my_progress")
-            .button(text="🔙 НАЗАД", callback_data="back_main")
-            .adjust(1)
-            .as_markup()
-    )
-
-@dp.callback_query(F.data.startswith("single_"))
-async def single_choice_callback(callback: types.CallbackQuery):
-    question_id = int(callback.data.replace("single_", ""))
-    
-    if question_id in QUESTIONS:
-        question = QUESTIONS[question_id]
-        if "options" in question:
-            keyboard = get_options_keyboard(question["options"], question_id)
-            await callback.message.edit_reply_markup(reply_markup=keyboard)
-
-@dp.callback_query(F.data.startswith("answer_"))
-async def answer_callback(callback: types.CallbackQuery):
-    data = callback.data.replace("answer_", "").split("_")
-    if len(data) != 2:
-        return
-    
-    question_id = int(data[0])
-    answer_index = int(data[1])
-    
-    if question_id not in QUESTIONS:
-        return
-    
-    question = QUESTIONS[question_id]
+    task_num = random.choice(list(QUESTIONS.keys()))
+    question = QUESTIONS[task_num]
     user_state = get_user_state(callback.from_user.id)
     user_state.update_daily_streak()
+    user_state.current_question = question
+    user_state.waiting_for_answer = True
     
-    is_correct = answer_index == question["correct"]
-    points_earned = question["points"] if is_correct else 0
+    text = f"<b>🎲 СЛУЧАЙНОЕ ЗАДАНИЕ №{task_num}</b>\n\n"
+    text += f"📚 Тема: {question['topic']}\n"
+    text += f"⭐ Баллы: {question['points']}\n\n"
+    text += question['text']
+    
+    keyboard = InlineKeyboardBuilder()
+    
+    if question["type"] == "single_choice":
+        keyboard.button(text="📝 ВВЕСТИ НОМЕР ОТВЕТА", callback_data="answer_input")
+    else:
+        keyboard.button(text="📝 ВВЕСТИ ТЕКСТОВЫЙ ОТВЕТ", callback_data="answer_input")
+    
+    keyboard.button(text="🎲 ЕЩЕ ОДНО", callback_data="random_task")
+    keyboard.adjust(1)
+    
+    await callback.message.edit_text(text, reply_markup=keyboard.as_markup())
+
+@dp.callback_query(F.data == "answer_input")
+async def answer_input_callback(callback: types.CallbackQuery):
+    await callback.message.answer("📝 <b>Введите ваш ответ:</b>")
+
+# ========== ОБРАБОТКА ОТВЕТОВ ==========
+@dp.message()
+async def handle_answers(message: Message):
+    user_state = get_user_state(message.from_user.id)
+    user_state.update_daily_streak()
+    
+    # Если это экзамен
+    if user_state.current_exam:
+        await handle_exam_answer(message, user_state)
+        return
+    
+    # Если это обычное задание
+    if not user_state.waiting_for_answer or not user_state.current_question:
+        return
+    
+    question = user_state.current_question
+    user_answer = message.text.strip()
+    
+    if not user_answer:
+        return
+    
+    # Сбрасываем флаг
+    user_state.waiting_for_answer = False
+    
+    # Проверяем ответ
+    is_correct = False
+    points_earned = 0
+    
+    if question["type"] == "single_choice":
+        # Проверяем, является ли ответ числом
+        if user_answer.isdigit():
+            user_choice = int(user_answer) - 1
+            if 0 <= user_choice < len(question["options"]):
+                is_correct = (user_choice == question["correct"])
+                points_earned = question["points"] if is_correct else 0
+    else:
+        # Для текстовых ответов - упрощенная проверка
+        user_answer_lower = user_answer.lower()
+        is_correct = True  # Для тестовых целей считаем правильным
+        points_earned = question["points"]
     
     # Обновляем статистику
-    if user_state.current_exam:
-        user_state.exam_score += points_earned
-        user_state.exam_answers[question_id] = is_correct
-        user_state.add_exam_result(is_correct, points_earned, question["topic"])
-    
     user_state.add_result(is_correct, points_earned, question["topic"])
     
     # Формируем ответ
     result_text = f"{'✅ ПРАВИЛЬНО!' if is_correct else '❌ НЕПРАВИЛЬНО'}\n\n"
     
-    result_text += f"<b>Ваш ответ:</b> {answer_index + 1}\n"
-    result_text += f"<b>Правильный ответ:</b> {question['correct'] + 1}\n\n"
-    
-    result_text += f"<b>Объяснение:</b> {question['explanation']}\n\n"
-    
-    result_text += f"📊 Правильных ответов: {user_state.correct_answers}\n"
-    result_text += f"⭐ Ваши баллы: {user_state.score}\n"
-    result_text += f"🔥 Серия правильных: {user_state.perfect_answers_streak}"
-    
-    keyboard = get_answer_keyboard(question_id, question["type"], user_state.current_exam is not None)
-    
-    await callback.message.edit_text(result_text, reply_markup=keyboard)
-
-@dp.callback_query(F.data.startswith("text_"))
-async def text_answer_callback(callback: types.CallbackQuery):
-    question_id = int(callback.data.replace("text_", ""))
-    user_state = get_user_state(callback.from_user.id)
-    
-    if question_id in QUESTIONS:
-        question = QUESTIONS[question_id]
-        user_state.current_question = question
-        user_state.waiting_for_answer = True
-        
-        instruction = "📝 <b>Напишите ответ в чат:</b>\n\n"
-        
-        if question["type"] == "concept_explanation":
-            instruction += "• Напишите два понятия\n• Раскройте смысл одного из них\n\n"
-        elif question["type"] in ["photo_analysis", "diagram_analysis"]:
-            instruction += "• Определите вид деятельности/явление\n• Сформулируйте 2 правила/вывода\n\n"
-        
-        await callback.message.answer(instruction)
-
-@dp.callback_query(F.data.startswith("show_theory_"))
-async def show_theory_in_task_callback(callback: types.CallbackQuery):
-    question_id = int(callback.data.replace("show_theory_", ""))
-    
-    if question_id in QUESTIONS:
-        question = QUESTIONS[question_id]
-        topic_name = question["topic"]
-        
-        if topic_name in THEORY_DETAILED:
-            subtopics = list(THEORY_DETAILED[topic_name].keys())
-            if subtopics:
-                subtopic_name = subtopics[0]
-                subtopic_data = THEORY_DETAILED[topic_name][subtopic_name]
-                
-                theory_text = f"📚 <b>ТЕОРИЯ ПО ТЕМЕ: {topic_name}</b>\n\n"
-                theory_text += f"<b>{subtopic_name}:</b>\n"
-                theory_text += f"{subtopic_data['definition']}\n\n"
-                
-                keyboard = InlineKeyboardBuilder()
-                keyboard.button(text="📖 ВСЯ ТЕОРИЯ ПО ТЕМЕ", callback_data=f"theory_topic_{topic_name}")
-                keyboard.button(text="🔙 К ЗАДАНИЮ", callback_data=f"back_to_question_{question_id}")
-                keyboard.adjust(1)
-                
-                await callback.message.edit_text(theory_text, reply_markup=keyboard.as_markup())
-
-@dp.callback_query(F.data.startswith("back_to_question_"))
-async def back_to_question_callback(callback: types.CallbackQuery):
-    question_id = int(callback.data.replace("back_to_question_", ""))
-    
-    if question_id in QUESTIONS:
-        question = QUESTIONS[question_id]
-        await send_question(callback.from_user.id, question, edit_message=callback.message)
-
-@dp.callback_query(F.data == "exam_next")
-async def exam_next_callback(callback: types.CallbackQuery):
-    user_state = get_user_state(callback.from_user.id)
-    
-    if user_state.current_exam:
-        if user_state.current_exam_index < len(user_state.current_exam) - 1:
-            user_state.current_exam_index += 1
-            question = user_state.current_exam[user_state.current_exam_index]
-            await send_question(callback.from_user.id, question, edit_message=callback.message, is_exam=True)
-        else:
-            # Завершение экзамена
-            await finish_exam(callback, user_state)
-
-# ========== ФУНКЦИИ ДЛЯ ОТПРАВКИ ВОПРОСОВ ==========
-async def send_question(user_id, question, edit_message=None, is_exam=False):
-    user_state = get_user_state(user_id)
-    user_state.current_question = question
-    user_state.waiting_for_answer = True
-    
-    task_num = question.get("task_number", question["id"])
-    
-    if is_exam:
-        exam_progress = f"<b>📝 ВАРИАНТ ОГЭ | Задание {task_num}/49</b>\n\n"
+    if question["type"] == "single_choice":
+        result_text += f"<b>Ваш ответ:</b> {user_answer}\n"
+        result_text += f"<b>Правильный ответ:</b> {question['correct'] + 1}\n\n"
     else:
-        exam_progress = f"<b>🎯 ЗАДАНИЕ №{task_num}</b>\n\n"
-    
-    text = f"{exam_progress}📚 Тема: {question['topic']}\n⭐ Баллы: {question['points']}\n\n{question['text']}"
-    
-    keyboard = get_answer_keyboard(question["id"], question["type"], is_exam)
-    
-    if edit_message:
-        await edit_message.edit_text(text, reply_markup=keyboard)
-    else:
-        await bot.send_message(user_id, text, reply_markup=keyboard)
-
-# ========== ОБРАБОТКА ТЕКСТОВЫХ ОТВЕТОВ ==========
-@dp.message()
-async def handle_text_messages(message: Message):
-    # Игнорируем команды
-    if message.text and message.text.startswith('/'):
-        return
-        
-    user_state = get_user_state(message.from_user.id)
-    user_state.update_daily_streak()
-    
-    # Проверяем, ждем ли мы ответ на вопрос
-    if not user_state.waiting_for_answer or not user_state.current_question:
-        # Проверяем, может это выбор варианта цифрой
-        if message.text and message.text.strip().isdigit():
-            num = int(message.text.strip())
-            if user_state.current_question and "options" in user_state.current_question:
-                if 1 <= num <= len(user_state.current_question["options"]):
-                    answer_index = num - 1
-                    is_correct = answer_index == user_state.current_question["correct"]
-                    points_earned = user_state.current_question["points"] if is_correct else 0
-                    
-                    if user_state.current_exam:
-                        user_state.exam_score += points_earned
-                        user_state.exam_answers[user_state.current_question["id"]] = is_correct
-                        user_state.add_exam_result(is_correct, points_earned, user_state.current_question["topic"])
-                    
-                    user_state.add_result(is_correct, points_earned, user_state.current_question["topic"])
-                    
-                    result_text = f"{'✅ ПРАВИЛЬНО!' if is_correct else '❌ НЕПРАВИЛЬНО'}\n\n"
-                    result_text += f"<b>Ваш ответ:</b> {num}\n"
-                    result_text += f"<b>Правильный ответ:</b> {user_state.current_question['correct'] + 1}\n\n"
-                    result_text += f"<b>Объяснение:</b> {user_state.current_question['explanation']}\n\n"
-                    result_text += f"📊 Правильных ответов: {user_state.correct_answers}\n"
-                    result_text += f"⭐ Ваши баллы: {user_state.score}"
-                    
-                    user_state.waiting_for_answer = False
-                    
-                    await message.answer(result_text)
-                    
-                    # Если это экзамен, предлагаем следующее
-                    if user_state.current_exam:
-                        if user_state.current_exam_index < len(user_state.current_exam) - 1:
-                            keyboard = InlineKeyboardBuilder()
-                            keyboard.button(text="➡️ СЛЕДУЮЩЕЕ ЗАДАНИЕ", callback_data="exam_next")
-                            await message.answer("Продолжить экзамен?", reply_markup=keyboard.as_markup())
-                        else:
-                            await finish_exam(message, user_state)
-                    return
-        return
-    
-    # Обработка текстового ответа
-    question = user_state.current_question
-    user_answer = message.text.strip() if message.text else ""
-    
-    if not user_answer:
-        return
-        
-    # Сбрасываем флаг
-    user_state.waiting_for_answer = False
-    
-    # Проверяем ответ (упрощенная проверка)
-    is_correct = check_text_answer(question, user_answer)
-    points_earned = question["points"] if is_correct else 0
-    
-    # Обновляем статистику
-    if user_state.current_exam:
-        user_state.exam_score += points_earned
-        user_state.exam_answers[question["id"]] = is_correct
-        user_state.add_exam_result(is_correct, points_earned, question["topic"])
-    
-    user_state.add_result(is_correct, points_earned, question["topic"])
-    
-    # Формируем ответ
-    result_text = f"{'✅ ПРАВИЛЬНО!' if is_correct else '⚠️ ОТВЕТ ПРИНЯТ'}\n\n"
-    result_text += f"<b>Ваш ответ:</b> {user_answer[:200]}\n\n"
-    
-    if "correct_answers" in question:
-        result_text += f"<b>Пример правильного ответа:</b>\n"
-        for ans in question["correct_answers"]:
-            result_text += f"• {ans}\n"
-    elif "correct" in question and not isinstance(question["correct"], int):
-        result_text += f"<b>Правильный ответ:</b> {question['correct']}\n"
-    elif "correct_plan" in question:
-        result_text += f"<b>Пример плана:</b>\n{question['correct_plan']}\n"
+        result_text += f"<b>Ваш ответ:</b> {user_answer}\n\n"
+        if "correct_answers" in question:
+            result_text += f"<b>Пример правильного ответа:</b>\n"
+            for ans in question["correct_answers"]:
+                result_text += f"• {ans}\n"
+        elif "correct" in question:
+            result_text += f"<b>Правильный ответ:</b> {question['correct']}\n"
     
     result_text += f"\n<b>Объяснение:</b> {question['explanation']}\n\n"
     result_text += f"📊 Правильных ответов: {user_state.correct_answers}\n"
     result_text += f"⭐ Ваши баллы: {user_state.score}\n"
     result_text += f"🔥 Серия правильных: {user_state.perfect_answers_streak}"
     
-    await message.answer(result_text)
+    # Предлагаем следующее действие
+    keyboard = InlineKeyboardBuilder()
+    keyboard.button(text="🎲 СЛУЧАЙНОЕ ЗАДАНИЕ", callback_data="random_task")
+    keyboard.button(text="📚 ВЫБРАТЬ ЗАДАНИЕ", callback_data="back_to_tasks")
+    keyboard.adjust(1)
     
-    # Если это экзамен, предлагаем следующее
-    if user_state.current_exam:
-        if user_state.current_exam_index < len(user_state.current_exam) - 1:
-            keyboard = InlineKeyboardBuilder()
-            keyboard.button(text="➡️ СЛЕДУЮЩЕЕ ЗАДАНИЕ", callback_data="exam_next")
-            await message.answer("Продолжить экзамен?", reply_markup=keyboard.as_markup())
-        else:
-            await finish_exam(message, user_state)
+    await message.answer(result_text, reply_markup=keyboard.as_markup())
 
-def check_text_answer(question, user_answer):
-    """Упрощенная проверка текстового ответа"""
-    user_answer_lower = user_answer.lower()
+async def handle_exam_answer(message: Message, user_state):
+    """Обработка ответа в режиме экзамена"""
+    question = user_state.current_exam[user_state.current_exam_index]
+    user_answer = message.text.strip()
     
-    if question["type"] == "concept_explanation":
-        # Проверяем наличие правильных понятий
-        correct_count = 0
-        for correct in question.get("correct_answers", []):
-            for word in correct.lower().split():
-                if word in user_answer_lower:
-                    correct_count += 1
-                    break
-        return correct_count >= 1
+    if not user_answer:
+        return
     
-    # Для остальных типов считаем правильным
-    return True
-
-async def finish_exam(context, user_state):
-    """Завершение экзамена и вывод результатов"""
-    if isinstance(context, types.CallbackQuery):
-        message = context.message
+    # Проверяем ответ
+    is_correct = False
+    points_earned = 0
+    
+    if question["type"] == "single_choice":
+        if user_answer.isdigit():
+            user_choice = int(user_answer) - 1
+            if 0 <= user_choice < len(question["options"]):
+                is_correct = (user_choice == question["correct"])
+                points_earned = question["points"] if is_correct else 0
     else:
-        message = context
+        is_correct = True
+        points_earned = question["points"]
     
-    total_points_possible = 0
-    for question in user_state.current_exam:
-        total_points_possible += question["points"]
+    # Обновляем статистику экзамена
+    user_state.exam_score += points_earned
     
-    accuracy = (user_state.exam_score / total_points_possible * 100) if total_points_possible > 0 else 0
+    # Переходим к следующему вопросу или завершаем
+    if user_state.current_exam_index < len(user_state.current_exam) - 1:
+        user_state.current_exam_index += 1
+        next_question = user_state.current_exam[user_state.current_exam_index]
+        
+        # Показываем результат и следующий вопрос
+        result_text = f"{'✅' if is_correct else '❌'} Задание {question['id']} завершено.\n"
+        result_text += f"Текущий счет: {user_state.exam_score} баллов\n\n"
+        result_text += f"<b>Задание {next_question['id']}:</b>\n"
+        result_text += next_question['text']
+        
+        await message.answer(result_text)
+    else:
+        # Завершение экзамена
+        await finish_exam(message, user_state)
+
+async def finish_exam(message: Message, user_state):
+    """Завершение экзамена"""
+    total_points = sum(q["points"] for q in user_state.current_exam)
+    accuracy = (user_state.exam_score / total_points * 100) if total_points > 0 else 0
     
     # Определяем оценку
     if user_state.exam_score >= 35:
         grade = "5 (ОТЛИЧНО)"
-        grade_emoji = "🏆"
     elif user_state.exam_score >= 25:
         grade = "4 (ХОРОШО)"
-        grade_emoji = "⭐"
     elif user_state.exam_score >= 15:
         grade = "3 (УДОВЛЕТВОРИТЕЛЬНО)"
-        grade_emoji = "✅"
     else:
         grade = "2 (НЕУДОВЛЕТВОРИТЕЛЬНО)"
-        grade_emoji = "❌"
     
     result_text = f"""
-{grade_emoji} <b>ВАРИАНТ ОГЭ ЗАВЕРШЕН!</b> {grade_emoji}
+🏁 <b>ЭКЗАМЕН ЗАВЕРШЕН!</b>
 
-📊 <b>ИТОГОВЫЙ РЕЗУЛЬТАТ:</b>
-✅ Набрано баллов: {user_state.exam_score}/{total_points_possible}
-🎯 Точность: {accuracy:.1f}%
-📈 Оценка: {grade}
+📊 <b>ИТОГИ:</b>
+• Набрано баллов: {user_state.exam_score}/{total_points}
+• Точность: {accuracy:.1f}%
+• Оценка: {grade}
+
+{"🎉 Отличный результат!" if accuracy >= 80 else 
+ "👍 Хороший результат!" if accuracy >= 60 else 
+ "📚 Нужно больше практики!" if accuracy >= 40 else 
+ "🔁 Требуется повторение материала!"}
 """
     
-    if accuracy >= 80:
-        result_text += "🎉 Отличный результат! Вы хорошо подготовлены к экзамену."
-        if user_state.exam_score >= 25:
-            user_state.achievements["oge_master"]["unlocked"] = True
-            result_text += "\n🏆 <b>ДОСТИЖЕНИЕ РАЗБЛОКИРОВАНО: Мастер ОГЭ!</b>"
-    elif accuracy >= 60:
-        result_text += "👍 Хороший результат. Обратите внимание на сложные для вас темы."
-    elif accuracy >= 40:
-        result_text += "📚 Нужно больше практики. Повторите теорию по слабым темам."
-    else:
-        result_text += "📖 Требуется серьезная подготовка. Начните с повторения базовой теории."
-    
     # Сохраняем результат
-    user_state.exam_results.append(user_state.exam_score)
     user_state.current_exam = None
     user_state.current_exam_index = 0
     
     keyboard = InlineKeyboardBuilder()
-    keyboard.button(text="🔄 ПОВТОРИТЬ СЛАБЫЕ ТЕМЫ", callback_data="repeat")
-    keyboard.button(text="📊 СТАТИСТИКА", callback_data="stats_menu")
     keyboard.button(text="🏠 ГЛАВНОЕ МЕНЮ", callback_data="back_main")
     keyboard.adjust(1)
     
     await message.answer(result_text, reply_markup=keyboard.as_markup())
 
-@dp.callback_query(F.data == "repeat")
-async def repeat_callback(callback: types.CallbackQuery):
-    await repeat_command(callback.message)
-
-@dp.callback_query(F.data == "stats_menu")
-async def stats_menu_callback(callback: types.CallbackQuery):
-    await stats_command(callback.message)
+async def send_question(user_id, question, is_exam=False):
+    """Отправка вопроса пользователю"""
+    user_state = get_user_state(user_id)
+    user_state.current_question = question
+    user_state.waiting_for_answer = True
+    
+    if is_exam:
+        exam_progress = f"<b>📝 ВАРИАНТ ОГЭ | Задание {question['task_number']}/49</b>\n\n"
+    else:
+        exam_progress = f"<b>🎯 ЗАДАНИЕ №{question['id']}</b>\n\n"
+    
+    text = f"{exam_progress}📚 Тема: {question['topic']}\n⭐ Баллы: {question['points']}\n\n{question['text']}"
+    
+    await bot.send_message(user_id, text)
+    
+    if question["type"] == "single_choice":
+        options_text = "<b>Варианты ответа:</b>\n"
+        for i, option in enumerate(question["options"], 1):
+            options_text += f"{i}. {option}\n"
+        options_text += "\n<b>Введите номер правильного ответа:</b>"
+        await bot.send_message(user_id, options_text)
+    else:
+        await bot.send_message(user_id, "<b>Введите ваш ответ:</b>")
 
 # ========== ЗАПУСК БОТА ==========
 async def main():
-    print("🤖 Бот запускается...")
-    print(f"✅ Токен: {'Установлен' if BOT_TOKEN else 'Требуется настройка'}")
-    print("🎮 Система геймификации: ВКЛЮЧЕНА")
-    print("📚 База вопросов: 49 заданий ОГЭ")
-    
-    # Запускаем HTTP сервер для Railway
-    http_runner = await start_http_server()
+    print("=" * 50)
+    print("🤖 БОТ ДЛЯ ПОДГОТОВКИ К ОГЭ")
+    print("=" * 50)
+    print(f"✅ Токен: {'Установлен' if BOT_TOKEN else 'НЕ УСТАНОВЛЕН!'}")
+    print(f"📚 Вопросов: {len(QUESTIONS)}")
+    print(f"🏆 Достижений: {len(ACHIEVEMENTS)}")
+    print(f"📖 Тем: {len(THEORY)}")
+    print("=" * 50)
+    print("🚀 Запускаю бота...")
     
     try:
-        # Удаляем вебхук, если он был установлен
+        # Удаляем вебхук
         await bot.delete_webhook(drop_pending_updates=True)
         
         # Запускаем поллинг
         await dp.start_polling(bot)
-    finally:
-        # Очищаем ресурсы
-        await http_runner.cleanup()
+    except Exception as e:
+        print(f"❌ Ошибка при запуске бота: {e}")
+        sys.exit(1)
 
 if __name__ == "__main__":
+    # Для Railway: устанавливаем порт из переменной окружения
+    port = int(os.getenv("PORT", 8000))
+    print(f"🌐 Порт для Railway: {port}")
+    
+    # Запускаем бота
     asyncio.run(main())
 
 
