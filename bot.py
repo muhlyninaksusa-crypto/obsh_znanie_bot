@@ -12,6 +12,7 @@ from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.enums import ParseMode
 
 # ========== ПРОВЕРКА ТОКЕНА ==========
 # Получаем токен из Railway Variables
@@ -36,7 +37,7 @@ logger = logging.getLogger(__name__)
 
 # ========== СОЗДАНИЕ ОБЪЕКТОВ БОТА ==========
 storage = MemoryStorage()
-bot = Bot(token=BOT_TOKEN)
+bot = Bot(token=BOT_TOKEN, parse_mode=ParseMode.HTML)  # Устанавливаем parse_mode по умолчанию
 dp = Dispatcher(storage=storage)
 
 # ========== СОСТОЯНИЯ ==========
@@ -257,7 +258,7 @@ THEORY_DETAILED = {
         "Деньги и банки": {
             "definition": "Деньги — это особый товар, выполняющий роль всеобщего эквивалента при обмене товаров.",
             "key_points": [
-                "Функции денег: мера стоимости, средство обращения, средство платежа, средство накопления",
+                "Функции денеги: мера стоимости, средство обращения, средство платежа, средство накопления",
                 "Инфляция — рост общего уровня цен",
                 "Банк — финансовое учреждение, работающее с деньгами",
                 "Кредит — предоставление денег в долг под проценты",
@@ -466,7 +467,7 @@ THEORY_DETAILED = {
             "key_points": [
                 "Функции партий: представление интересов, борьба за власть, политическое образование, подготовка кадров",
                 "Типы партий: правящие и оппозиционные",
-                "Идеологии: консерватизм, либерализм, социализм",
+                "Идеологии: консерватизм, либеральность, социализм",
                 "Партийная система: однопартийная, двухпартийная, многопартийная",
                 "Общественно-политические движения — массовые объединения граждан"
             ],
@@ -530,12 +531,12 @@ THEORY_DETAILED = {
                 "Функции права: регулятивная, охранительная, воспитательная",
                 "Источники права: нормативные акты, обычаи, прецеденты, договоры",
                 "Отрасли права: конституционное, гражданское, уголовное, административное, трудовое, семейное",
-                "Норма права: гипотеза (условия), диспозиция (правило), санкция (последствия)"
+                "Норма права: гипотеза (условия), диспозиция (правило), sancция (последствия)"
             ],
             "examples": [
                 "Нормативный акт: Конституция РФ, федеральные законы",
                 "Обычай: обычай делового оборота в торговле",
-                "Преcedent: решения судов в Великобритании и США"
+                "Прецедент: решения судов в Великобритании и США"
             ],
             "questions": [
                 "Назовите признаки права",
@@ -579,7 +580,7 @@ THEORY_DETAILED = {
             ],
             "questions": [
                 "Что такое правоотношения?",
-                "Чем правоспособность отличается от дееспособности?",
+                "Чем правоспособность отличается от дееспособность?",
                 "Что такое юридическая ответственность?"
             ]
         },
@@ -606,7 +607,7 @@ THEORY_DETAILED = {
         "Правосудие и правоохранительные органы": {
             "definition": "Правосудие — это деятельность судов по рассмотрению и разрешению дел.",
             "key_points": [
-                "Принципы правосудие: законность, независимость судей, гласность, состязательность, презумпция невиновности",
+                "Принципы правосудия: законность, независимость судей, гласность, состязательность, презумпция невиновности",
                 "Судебная система: Конституционный суд, Верховный суд, арбитражные суды, суды общей юрисдикции",
                 "Правоохранительные органы: прокуратура, полиция, ФСБ, следственный комитет",
                 "Адвокатура — профессиональная помощь по правовым вопросам",
@@ -747,7 +748,7 @@ class UserState:
         self.exam_topic_stats = {}
         
         # Геймификация
-        self.achievements = ACHIEVEMENTS.copy()
+        self.achievements = {k: v.copy() for k, v in ACHIEVEMENTS.items()}
         self.daily_streak = 0
         self.last_active_date = None
         self.perfect_days_streak = 0
@@ -845,18 +846,24 @@ class UserState:
             self.last_active_day = today_str
         
         if self.last_active_date:
-            last_date = datetime.strptime(self.last_active_date, "%Y-%m-%d").date()
-            difference = (today - last_date).days
-            
-            if difference == 1:  # Последний раз был вчера
-                self.daily_streak += 1
-                self.perfect_days_streak += 1
-                self.total_days_active += 1
-            elif difference > 1:  # Пропустил день
+            try:
+                last_date = datetime.strptime(self.last_active_date, "%Y-%m-%d").date()
+                difference = (today - last_date).days
+                
+                if difference == 1:  # Последний раз был вчера
+                    self.daily_streak += 1
+                    self.perfect_days_streak += 1
+                    self.total_days_active += 1
+                elif difference > 1:  # Пропустил день
+                    self.daily_streak = 1
+                    self.perfect_days_streak = 0
+                    self.total_days_active += 1
+                # Если difference == 0, ничего не меняем (уже сегодня заходил)
+            except ValueError:
+                # Ошибка в формате даты
                 self.daily_streak = 1
-                self.perfect_days_streak = 0
-                self.total_days_active += 1
-            # Если difference == 0, ничего не меняем (уже сегодня заходил)
+                self.perfect_days_streak = 1
+                self.total_days_active = 1
         else:
             # Первое посещение
             self.daily_streak = 1
@@ -1257,7 +1264,7 @@ QUESTIONS = {
     "task_23": [
         {
             "id": 23,
-            "text": "Прочитайте текст о демократии. Объясните смысл понятия «гражданское общество». Приведите два примера деятельности организаций гражданского общества.",
+            "text": "Прочитайте текст о демократии. Объясните смысл понятия «гражданское общества». Приведите два примера деятельности организаций гражданского общества.",
             "correct_answers": [
                 "Сфера самодеятельности граждан, независимая от государства",
                 "Пример 1: Экологическое движение, защищающее природу",
@@ -1298,7 +1305,7 @@ QUESTIONS = {
     "task_26": [
         {
             "id": 26,
-            "text": "Верны ли следующие суждения о политической власти?\n\nА. Политическая власть распространяется на всё общество.\nБ. Политическая власть опирается на силу закона.\n\n1) верно только А\n2) верно только Б\n3) верны оба суждения\n4) оба суждения неверны",
+            "text": "Верны ли следующие суждения о политической власти?\n\nА. Политическая власть распространяется на всё общество.\nБ. Политическая власти опирается на силу закона.\n\n1) верно только А\n2) верно только Б\n3) верны оба суждения\n4) оба суждения неверны",
             "options": ["верно только А", "верно только Б", "верны оба суждения", "оба суждения неверны"],
             "correct": 2,
             "explanation": "✅ Верны оба суждения: А - власть распространяется на всех граждан, Б - власть осуществляется через законы.",
@@ -1421,7 +1428,7 @@ QUESTIONS = {
             "text": "Что из перечисленного относится к духовной культуре?\n\n1) строительство завода\n2) принятие закона\n3) научное открытие\n4) выплата заработной платы",
             "options": ["строительство завода", "принятие закона", "научное открытие", "выплата заработной платы"],
             "correct": 2,
-            "explanation": "✅ Правильно: научное открытие. Духовная культура включает науку, искусство, религию, мораль, образование.",
+            "explanation": "✅ Правильно: научное открытие. Духовная культура включает науку, искусство, религия, мораль, образование.",
             "topic": "Духовная культура",
             "points": 1,
             "type": "single_choice"
@@ -1763,52 +1770,37 @@ async def start_command(message: types.Message):
 🎯 <b>Выберите действие:</b>
 """
     
-    await message.answer(welcome, parse_mode="HTML", reply_markup=get_main_keyboard())
+    await message.answer(welcome, reply_markup=get_main_keyboard())
 
-@dp.message(Text(text="📚 ТЕОРИЯ"))
-async def theory_command(message: types.Message):
-    user_state = get_user_state(message.from_user.id)
-    user_state.update_daily_streak()
-    
-    await message.answer(
-        "📚 <b>ВЫБЕРИТЕ ТЕМУ:</b>\n\n"
-        "Каждая тема разделена на подтемы с подробными карточки:\n"
-        "• Определение понятия\n• Ключевые моменты\n• Примеры\n• Вопросы для самопроверки",
-        parse_mode="HTML",
-        reply_markup=get_theory_keyboard()
-    )
+@dp.message(Command("help"))
+async def help_command(message: types.Message):
+    help_text = """
+<b>📚 БОТ ДЛЯ ПОДГОТОВКИ К ОГЭ ПО ОБЩЕСТВОЗНАНИЮ</b>
 
-@dp.message(Text(text="🎯 ЗАДАНИЯ"))
-async def tasks_command(message: types.Message):
-    user_state = get_user_state(message.from_user.id)
-    user_state.update_daily_streak()
-    
-    await message.answer(
-        "🎯 <b>ЗАДАНИЯ ОГЭ (1-49):</b>\n\n"
-        "Выберите группу заданий для решения.\n"
-        "Все задания соответствуют реальным из вариантов ОГЭ.",
-        parse_mode="HTML",
-        reply_markup=get_tasks_group_keyboard()
-    )
+<b>Основные команды:</b>
+/start - Запустить бота
+/help - Эта справка
+/ping - Проверить работу бота
+/stats - Ваша статистика
 
-@dp.message(Text(text="🏆 ДОСТИЖЕНИЯ"))
-async def achievements_command(message: types.Message):
-    user_state = get_user_state(message.from_user.id)
-    user_state.update_daily_streak()
-    
-    progress = user_state.get_progress_summary()
-    
-    await message.answer(
-        f"🏆 <b>СИСТЕМА ДОСТИЖЕНИЙ</b>\n\n"
-        f"Открыто: {progress['achievements_unlocked']}/{progress['total_achievements']}\n"
-        f"Текущая серия правильных ответов: {user_state.perfect_answers_streak}\n"
-        f"Заданий сегодня: {user_state.daily_questions_solved}\n\n"
-        f"Выберите опцию:",
-        parse_mode="HTML",
-        reply_markup=get_achievements_keyboard()
-    )
+<b>Меню:</b>
+📚 ТЕОРИЯ - Подробные материалы по всем темам
+🎯 ЗАДАНИЯ - 49 заданий ОГЭ с ответами
+📝 ПОЛНЫЙ ОГЭ - Пройти полный вариант экзамена
+🏆 ДОСТИЖЕНИЯ - Система геймификации
+📊 СТАТИСТИКА - Ваш прогресс
+🔄 ПОВТОРИТЬ - Рекомендации по повторению
 
-@dp.message(Text(text="📊 СТАТИСТИКА"))
+<b>Как пользоваться:</b>
+1. Выбирайте тему для изучения
+2. Решайте задания
+3. Отвечайте в чат или выбирайте варианты
+4. Следите за своим прогрессом
+5. Открывайте достижения
+"""
+    await message.answer(help_text)
+
+@dp.message(Command("stats"))
 async def stats_command(message: types.Message):
     user_state = get_user_state(message.from_user.id)
     user_state.update_daily_streak()
@@ -1851,7 +1843,55 @@ async def stats_command(message: types.Message):
         for i, topic in enumerate(weak_topics, 1):
             stats_text += f"{i}. {topic['topic']} - {topic['accuracy']:.1f}%\n"
     
-    await message.answer(stats_text, parse_mode="HTML")
+    await message.answer(stats_text)
+
+@dp.message(Command("ping"))
+async def ping_command(message: types.Message):
+    await message.answer("🏓 Pong! Бот работает исправно.")
+
+@dp.message(Text(text="📚 ТЕОРИЯ"))
+async def theory_command(message: types.Message):
+    user_state = get_user_state(message.from_user.id)
+    user_state.update_daily_streak()
+    
+    await message.answer(
+        "📚 <b>ВЫБЕРИТЕ ТЕМУ:</b>\n\n"
+        "Каждая тема разделена на подтемы с подробными карточками:\n"
+        "• Определение понятия\n• Ключевые моменты\n• Примеры\n• Вопросы для самопроверки",
+        reply_markup=get_theory_keyboard()
+    )
+
+@dp.message(Text(text="🎯 ЗАДАНИЯ"))
+async def tasks_command(message: types.Message):
+    user_state = get_user_state(message.from_user.id)
+    user_state.update_daily_streak()
+    
+    await message.answer(
+        "🎯 <b>ЗАДАНИЯ ОГЭ (1-49):</b>\n\n"
+        "Выберите группу заданий для решения.\n"
+        "Все задания соответствуют реальным из вариантов ОГЭ.",
+        reply_markup=get_tasks_group_keyboard()
+    )
+
+@dp.message(Text(text="🏆 ДОСТИЖЕНИЯ"))
+async def achievements_command(message: types.Message):
+    user_state = get_user_state(message.from_user.id)
+    user_state.update_daily_streak()
+    
+    progress = user_state.get_progress_summary()
+    
+    await message.answer(
+        f"🏆 <b>СИСТЕМА ДОСТИЖЕНИЙ</b>\n\n"
+        f"Открыто: {progress['achievements_unlocked']}/{progress['total_achievements']}\n"
+        f"Текущая серия правильных ответов: {user_state.perfect_answers_streak}\n"
+        f"Заданий сегодня: {user_state.daily_questions_solved}\n\n"
+        f"Выберите опцию:",
+        reply_markup=get_achievements_keyboard()
+    )
+
+@dp.message(Text(text="📊 СТАТИСТИКА"))
+async def stats_menu_command(message: types.Message):
+    await stats_command(message)
 
 @dp.message(Text(text="🔄 ПОВТОРИТЬ"))
 async def repeat_command(message: types.Message):
@@ -1878,15 +1918,14 @@ async def repeat_command(message: types.Message):
         builder.button(text="🔙 НАЗАД", callback_data="back_main")
         builder.adjust(1, 1)
         
-        await message.answer(text, parse_mode="HTML", reply_markup=builder.as_markup())
+        await message.answer(text, reply_markup=builder.as_markup())
     else:
         await message.answer(
             "✅ <b>Все темы освоены хорошо!</b>\n\n"
             "Продолжайте в том же духе или попробуйте полный вариант ОГЭ.\n\n"
             "Ваша статистика:\n"
             f"• Средняя точность: {user_state.get_progress_summary()['accuracy']}%\n"
-            f"• Освоено тем: {user_state.get_progress_summary()['topics_mastered']}/{len(THEORY_DETAILED)}",
-            parse_mode="HTML"
+            f"• Освоено тем: {user_state.get_progress_summary()['topics_mastered']}/{len(THEORY_DETAILED)}"
         )
 
 @dp.message(Text(text="📝 ПОЛНЫЙ ОГЭ"))
@@ -1918,17 +1957,12 @@ async def full_exam_command(message: types.Message):
         "📝 <b>НАЧИНАЕМ ПОЛНЫЙ ВАРИАНТ ОГЭ!</b>\n\n"
         "Вам предстоит 49 заданий в правильном порядке как в реальном экзамене.\n"
         "Отвечайте словами, цифрами или выбирайте варианты.\n\n"
-        "<i>Начинаем с задания 1...</i>",
-        parse_mode="HTML"
+        "<i>Начинаем с задания 1...</i>"
     )
     
     # Отправляем первое задание
     question = user_state.current_exam[0]
     await send_question(message.from_user.id, question, is_exam=True)
-
-@dp.message(Command("ping"))
-async def ping_command(message: types.Message):
-    await message.answer("🏓 Pong! Бот работает исправно.")
 
 # ========== ОБРАБОТЧИКИ CALLBACK ==========
 @dp.callback_query(Text(text="back_main"))
@@ -1940,7 +1974,6 @@ async def back_main_callback(callback: types.CallbackQuery):
 async def back_theory_callback(callback: types.CallbackQuery):
     await callback.message.edit_text(
         "📚 <b>ВЫБЕРИТЕ ТЕМУ:</b>",
-        parse_mode="HTML",
         reply_markup=get_theory_keyboard()
     )
 
@@ -1948,7 +1981,6 @@ async def back_theory_callback(callback: types.CallbackQuery):
 async def back_to_groups_callback(callback: types.CallbackQuery):
     await callback.message.edit_text(
         "🎯 <b>ЗАДАНИЯ ОГЭ (1-49):</b>",
-        parse_mode="HTML",
         reply_markup=get_tasks_group_keyboard()
     )
 
@@ -1974,7 +2006,7 @@ async def theory_topic_callback(callback: types.CallbackQuery):
         
         text += "Выберите подтему для изучения:"
         
-        await callback.message.edit_text(text, parse_mode="HTML", reply_markup=get_subtopics_keyboard(topic_name))
+        await callback.message.edit_text(text, reply_markup=get_subtopics_keyboard(topic_name))
 
 @dp.callback_query(Text(startswith="subtopic_"))
 async def subtopic_callback(callback: types.CallbackQuery):
@@ -2028,7 +2060,6 @@ async def subtopic_callback(callback: types.CallbackQuery):
         
         await callback.message.edit_text(
             card_text,
-            parse_mode="HTML",
             reply_markup=get_subtopic_detail_keyboard(topic_name, subtopic_name)
         )
 
@@ -2058,7 +2089,6 @@ async def test_subtopic_callback(callback: types.CallbackQuery):
         await callback.message.edit_text(
             f"❓ <b>ПРОВЕРКА ЗНАНИЙ ПО ТЕМЕ:</b> {topic_name}\n\n"
             f"{question['text']}",
-            parse_mode="HTML",
             reply_markup=get_answer_keyboard(question["id"], question["type"])
         )
     else:
@@ -2090,7 +2120,6 @@ async def practice_topic_callback(callback: types.CallbackQuery):
                     f"🔄 <b>ПРАКТИКА ПО СЛАБОЙ ТЕМЕ:</b> {topic_name}\n\n"
                     f"Точность по теме: {weak_topics[0]['accuracy']:.1f}%\n\n"
                     f"{question['text']}",
-                    parse_mode="HTML",
                     reply_markup=get_answer_keyboard(question["id"], question["type"])
                 )
                 return
@@ -2117,7 +2146,6 @@ async def practice_topic_callback(callback: types.CallbackQuery):
         await callback.message.edit_text(
             f"📝 <b>ПРАКТИКА ПО ТЕМЕ:</b> {topic_name}\n\n"
             f"{question['text']}",
-            parse_mode="HTML",
             reply_markup=get_answer_keyboard(question["id"], question["type"])
         )
     else:
@@ -2144,7 +2172,6 @@ async def group_callback(callback: types.CallbackQuery):
     
     await callback.message.edit_text(
         f"<b>🎯 ЗАДАНИЯ {start}-{end}</b>\n\nВыберите номер задания:",
-        parse_mode="HTML",
         reply_markup=get_group_tasks_keyboard(start, end)
     )
 
@@ -2214,7 +2241,7 @@ async def my_achievements_callback(callback: types.CallbackQuery):
     keyboard.button(text="🔙 НАЗАД", callback_data="back_achievements")
     keyboard.adjust(1)
     
-    await callback.message.edit_text(achievements_text, parse_mode="HTML", reply_markup=keyboard.as_markup())
+    await callback.message.edit_text(achievements_text, reply_markup=keyboard.as_markup())
 
 @dp.callback_query(Text(text="my_progress"))
 async def my_progress_callback(callback: types.CallbackQuery):
@@ -2248,7 +2275,7 @@ async def my_progress_callback(callback: types.CallbackQuery):
     keyboard.button(text="🔙 НАЗАД", callback_data="back_achievements")
     keyboard.adjust(1)
     
-    await callback.message.edit_text(progress_text, parse_mode="HTML", reply_markup=keyboard.as_markup())
+    await callback.message.edit_text(progress_text, reply_markup=keyboard.as_markup())
 
 @dp.callback_query(Text(text="my_activity"))
 async def my_activity_callback(callback: types.CallbackQuery):
@@ -2283,13 +2310,12 @@ async def my_activity_callback(callback: types.CallbackQuery):
     keyboard.button(text="🔙 НАЗАД", callback_data="back_achievements")
     keyboard.adjust(1)
     
-    await callback.message.edit_text(activity_text, parse_mode="HTML", reply_markup=keyboard.as_markup())
+    await callback.message.edit_text(activity_text, reply_markup=keyboard.as_markup())
 
 @dp.callback_query(Text(text="back_achievements"))
 async def back_achievements_callback(callback: types.CallbackQuery):
     await callback.message.edit_text(
         "🏆 <b>СИСТЕМА ДОСТИЖЕНИЙ</b>\n\nВыберите опцию:",
-        parse_mode="HTML",
         reply_markup=get_achievements_keyboard()
     )
 
@@ -2301,7 +2327,6 @@ async def weak_topic_callback(callback: types.CallbackQuery):
         await callback.message.edit_text(
             f"📚 <b>ПОВТОРЕНИЕ ТЕМЫ:</b> {topic_name}\n\n"
             f"Выберите действие:",
-            parse_mode="HTML",
             reply_markup=InlineKeyboardBuilder()
                 .button(text="📖 ИЗУЧИТЬ ТЕОРИЮ", callback_data=f"theory_topic_{topic_name}")
                 .button(text="📝 РЕШИТЬ ЗАДАНИЯ", callback_data=f"practice_{topic_name}")
@@ -2335,12 +2360,11 @@ async def repeat_back_callback(callback: types.CallbackQuery):
         builder.button(text="🔙 НАЗАД", callback_data="back_main")
         builder.adjust(1, 1)
         
-        await callback.message.edit_text(text, parse_mode="HTML", reply_markup=builder.as_markup())
+        await callback.message.edit_text(text, reply_markup=builder.as_markup())
     else:
         await callback.message.edit_text(
             "✅ <b>Все темы освоены хорошо!</b>\n\n"
-            "Продолжайте в том же духе или попробуйте полный вариант ОГЭ.",
-            parse_mode="HTML"
+            "Продолжайте в том же духе или попробуйте полный вариант ОГЭ."
         )
 
 # ========== ФУНКЦИИ ДЛЯ ОТПРАВКИ ВОПРОСОВ ==========
@@ -2361,9 +2385,9 @@ async def send_question(user_id, question, edit_message=None, is_exam=False):
     keyboard = get_answer_keyboard(question["id"], question["type"], is_exam)
     
     if edit_message:
-        await edit_message.edit_text(text, parse_mode="HTML", reply_markup=keyboard)
+        await edit_message.edit_text(text, reply_markup=keyboard)
     else:
-        await bot.send_message(user_id, text, parse_mode="HTML", reply_markup=keyboard)
+        await bot.send_message(user_id, text, reply_markup=keyboard)
 
 # ========== ОБРАБОТКА ОТВЕТОВ ==========
 @dp.callback_query(Text(startswith="single_"))
@@ -2434,7 +2458,6 @@ async def answer_callback(callback: types.CallbackQuery):
                 
                 await callback.message.edit_text(
                     result_text,
-                    parse_mode="HTML",
                     reply_markup=get_answer_keyboard(task_id, question["type"], user_state.current_exam is not None)
                 )
                 return
@@ -2484,7 +2507,7 @@ async def text_answer_callback(callback: types.CallbackQuery):
                     instruction += "• Напишите развернутый ответ\n\n"
                     instruction += "<i>Отвечайте подробно, используя обществоведческие понятия</i>"
                 
-                await callback.message.answer(instruction, parse_mode="HTML")
+                await callback.message.answer(instruction)
                 return
 
 @dp.callback_query(Text(startswith="show_theory_"))
@@ -2524,7 +2547,6 @@ async def show_theory_in_task_callback(callback: types.CallbackQuery):
             
             await callback.message.edit_text(
                 theory_text,
-                parse_mode="HTML",
                 reply_markup=keyboard.as_markup()
             )
 
@@ -2564,6 +2586,10 @@ async def exam_next_callback(callback: types.CallbackQuery):
 # ========== ОБРАБОТКА ТЕКСТОВЫХ ОТВЕТОВ ==========
 @dp.message()
 async def handle_text_messages(message: types.Message):
+    # Игнорируем команды (они обрабатываются отдельно)
+    if message.text.startswith('/'):
+        return
+        
     user_state = get_user_state(message.from_user.id)
     user_state.update_daily_streak()
     
@@ -2595,7 +2621,7 @@ async def handle_text_messages(message: types.Message):
                     
                     user_state.waiting_for_answer = False
                     
-                    await message.answer(result_text, parse_mode="HTML")
+                    await message.answer(result_text)
                     
                     # Если это экзамен, предлагаем следующее
                     if user_state.current_exam:
@@ -2645,7 +2671,7 @@ async def handle_text_messages(message: types.Message):
     result_text += f"⭐ Ваши баллы: {user_state.score}\n"
     result_text += f"🔥 Серия правильных: {user_state.perfect_answers_streak}"
     
-    await message.answer(result_text, parse_mode="HTML")
+    await message.answer(result_text)
     
     # Если это экзамен, предлагаем следующее
     if user_state.current_exam:
@@ -2789,7 +2815,7 @@ async def finish_exam(context, user_state):
     keyboard.button(text="🏠 ГЛАВНОЕ МЕНЮ", callback_data="back_main")
     keyboard.adjust(1)
     
-    await message.answer(result_text, parse_mode="HTML", reply_markup=keyboard.as_markup())
+    await message.answer(result_text, reply_markup=keyboard.as_markup())
 
 @dp.callback_query(Text(text="stats"))
 async def stats_from_exam_callback(callback: types.CallbackQuery):
@@ -2807,5 +2833,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-
-
