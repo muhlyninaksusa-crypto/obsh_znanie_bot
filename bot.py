@@ -460,6 +460,15 @@ def get_user_state(user_id):
         user_data[user_id] = UserState(user_id)
     return user_data[user_id]
 
+# ========== ТЕКСТ ДЛЯ ЗАДАНИЙ 21-24 ==========
+COMMON_TEXT = """
+«Под угрозой сейчас находится большинство оставшихся высших видов растений и животных. Те из них, которые человек избрал для удовлетворения своих потребностей, давно уже приспособлены к его требованиям, но дикие виды, для которых нет места в мире человека, обречены. Их погубят не только охота и истребление, но и сведение лесов под поля, шахты, дороги, а главное — превращение обширных участков дикой природы в города и промышленные комплексы.
+
+Человек, придя в будущее, должен иметь возможность увидеть Землю не только как всеобщую стройплощадку и всеобщую ферму, но и как дикую природу, оставшуюся нетронутой. Она необходима и как среда обитания самого человека, поскольку он биологически сформировался в естественной, открытой среде. Она необходима и для этического воспитания человека: ничто так не воспитывает доброту, как контакт с дикой природой.
+
+Забота о сохранении дикой природы — неотъемлемая часть развития цивилизации, обязательное условие прогресса.»
+"""
+
 # ========== ВСЕ 24 ЗАДАНИЯ ОГЭ В ПРАВИЛЬНОМ ПОРЯДКЕ ==========
 OGE_QUESTIONS = [
     # ЗАДАНИЕ 1 - Политическая сфера
@@ -680,20 +689,21 @@ OGE_QUESTIONS = [
         "points": 1,
         "type": "table"
     },
-    # ЗАДАНИЕ 21 - План текста (БОЛЬШОЙ ТЕКСТ)
+    # ЗАДАНИЕ 21 - План текста
     {
         "id": 21,
-        "text": "Прочитайте текст и выполните задания 21-24.\n\n<b>Текст:</b>\n\n«Под угрозой сейчас находится большинство оставшихся высших видов растений и животных. Те из них, которые человек избрал для удовлетворения своих потребностей, давно уже приспособлены к его требованиям, но дикие виды, для которых нет места в мире человека, обречены. Их погубят не только охота и истребление, но и сведение лесов под поля, шахты, дороги, а главное — превращение обширных участков дикой природы в города и промышленные комплексы. \n\nЧеловек, придя в будущее, должен иметь возможность увидеть Землю не только как всеобщую стройплощадку и всеобщую ферму, но и как дикую природу, оставшуюся нетронутой. Она необходима и как среда обитания самого человека, поскольку он биологически сформировался в естественной, открытой среде. Она необходима и для этического воспитания человека: ничто так не воспитывает доброту, как контакт с дикой природой. \n\nЗабота о сохранении дикой природы — неотъемлемая часть развития цивилизации, обязательное условие прогресса.»\n\n<b>Задание 21.</b> Составьте план текста. Для этого выделите основные смысловые фрагменты текста и озаглавьте каждый из них.",
-        "correct_plan": "1. Угроза дикой природе\n2. Причины исчезновения видов\n3. Значение дикой природы для человека\n4. Забота о природе как условие прогресса",
+        "text": f"Прочитайте текст и выполните задания 21-24.\n\n<b>Текст:</b>{COMMON_TEXT}\n\n<b>Задание 21.</b> Составьте план текста. Для этого выделите основные смысловые фрагменты текста и озаглавьте каждый из них.",
+        "correct_answers": ["1. Угроза дикой природе", "2. Причины исчезновения видов", "3. Значение дикой природы для человека", "4. Забота о природе как условие прогресса"],
         "explanation": "✅ План должен отражать: угрозу природе, причины, значение для человека, роль в развитии цивилизации.",
         "topic": "Человек и общество",
         "points": 2,
-        "type": "plan"
+        "type": "plan",
+        "requires_text": True
     },
     # ЗАДАНИЕ 22 - Вопросы по тексту
     {
         "id": 22,
-        "text": "Прочитайте текст (задание 21).\n\n<b>Задание 22.</b> Назовите три глобальные проблемы современности, о которых не упоминается в данном фрагменте текста. В чем, по мнению автора, выражается основная экономическая проблема общества? Поясните, почему эта проблема приобрела особую актуальность в современном обществе?",
+        "text": f"Прочитайте текст (задание 21).\n\n<b>Задание 22.</b> Назовите три глобальные проблемы современности, о которых не упоминается в данном фрагменте текста. В чем, по мнению автора, выражается основная экономическая проблема общества? Поясните, почему эта проблема приобрела особую актуальность в современном обществе?",
         "correct_answers": [
             "Глобальные проблемы: международный терроризм, демографическая проблема, проблема Север-Юг",
             "Основная экономическая проблема: ограниченность ресурсов и рост потребностей",
@@ -702,12 +712,13 @@ OGE_QUESTIONS = [
         "explanation": "✅ Глобальные проблемы: терроризм, демография, разрыв в развитии. Экономическая проблема — ограниченность ресурсов при росте потребностей.",
         "topic": "Человек и общество",
         "points": 3,
-        "type": "text_questions"
+        "type": "text_questions",
+        "requires_text": True
     },
     # ЗАДАНИЕ 23 - Объяснение и примеры
     {
         "id": 23,
-        "text": "Прочитайте текст (задание 21).\n\n<b>Задание 23.</b> Предположите, что имеет в виду автор, утверждая: «Наделив нас невиданной дотоле силой и привив вкус к такому уровню жизни, о котором мы даже не помышляли, НТР не дает нам порой мудрости, чтобы держать под контролем наши возможности и запросы». Объяснения представьте в трех примерах.",
+        "text": f"Прочитайте текст (задание 21).\n\n<b>Задание 23.</b> Предположите, что имеет в виду автор, утверждая: «Наделив нас невиданной дотоле силой и привив вкус к такому уровню жизни, о котором мы даже не помышляли, НТР не дает нам порой мудрости, чтобы держать под контролем наши возможности и запросы». Объяснения представьте в трех примерах.",
         "correct_answers": [
             "1. Атомная энергия — оружие массового поражения и аварии на АЭС",
             "2. Интернет — доступ к информации и интернет-зависимость",
@@ -716,12 +727,13 @@ OGE_QUESTIONS = [
         "explanation": "✅ НТР дает мощные технологии, но не всегда мудрость их использования. Примеры: атомная энергия, интернет, ИИ.",
         "topic": "Человек и общество",
         "points": 3,
-        "type": "examples"
+        "type": "examples",
+        "requires_text": True
     },
     # ЗАДАНИЕ 24 - Аргументация
     {
         "id": 24,
-        "text": "Прочитайте текст (задание 21).\n\n<b>Задание 24.</b> Используя обществоведческие знания, выскажите свою точку зрения, возможно ли в ближайшем будущем преодолеть контраст между сверхразвитыми и слаборазвитыми странами? Приведите два аргумента, подкрепляющих вашу позицию.",
+        "text": f"Прочитайте текст (задание 21).\n\n<b>Задание 24.</b> Используя обществоведческие знания, выскажите свою точку зрения, возможно ли в ближайшем будущем преодолеть контраст между сверхразвитыми и слаборазвитыми странами? Приведите два аргумента, подкрепляющих вашу позицию.",
         "correct_answers": [
             "Позиция: невозможно полностью преодолеть контраст в ближайшем будущем",
             "Аргумент 1: разные стартовые условия и уровни экономического развития",
@@ -730,7 +742,8 @@ OGE_QUESTIONS = [
         "explanation": "✅ Полностью преодолеть разрыв в ближайшем будущем вряд ли возможно из-за разницы в развитии и интересов развитых стран.",
         "topic": "Человек и общество",
         "points": 3,
-        "type": "argument"
+        "type": "argument",
+        "requires_text": True
     }
 ]
 
@@ -805,12 +818,12 @@ def get_answer_keyboard(task_id, question_type, is_exam=False):
     builder = InlineKeyboardBuilder()
     
     if question_type == "choice":
-        builder.button(text="🔘 ВЫБРАТЬ ОТВЕТ", callback_data=f"show_options_{task_id}")
+        builder.button(text="🔘 ВЫБРАТЬ ОТВЕТ", callback_data=f"options_{task_id}")
     else:
-        builder.button(text="📝 НАПИСАТЬ ОТВЕТ", callback_data=f"text_answer_{task_id}")
+        builder.button(text="📝 НАПИСАТЬ ОТВЕТ", callback_data=f"answer_{task_id}")
     
     if not is_exam:
-        builder.button(text="📚 ТЕОРИЯ", callback_data=f"theory_for_task_{task_id}")
+        builder.button(text="📚 ТЕОРИЯ", callback_data=f"theory_task_{task_id}")
         builder.button(text="🎲 СЛУЧАЙНОЕ", callback_data="random_task")
     
     builder.adjust(1, 2)
@@ -819,9 +832,9 @@ def get_answer_keyboard(task_id, question_type, is_exam=False):
 def get_options_keyboard(options, question_id):
     builder = InlineKeyboardBuilder()
     for i, option in enumerate(options):
-        builder.button(text=f"{i+1}. {option[:30]}", callback_data=f"option_{question_id}_{i}")
+        builder.button(text=f"{i+1}. {option[:30]}", callback_data=f"opt_{question_id}_{i}")
     
-    builder.button(text="🔙 НАЗАД", callback_data=f"back_to_task_{question_id}")
+    builder.button(text="🔙 НАЗАД", callback_data=f"task_{question_id}")
     builder.adjust(1)
     return builder.as_markup()
 
@@ -1071,9 +1084,9 @@ async def random_task_callback(callback: types.CallbackQuery):
     await send_question(callback.from_user.id, question, edit_message=callback.message)
     await callback.answer()
 
-@dp.callback_query(lambda c: c.data.startswith("show_options_"))
-async def show_options_callback(callback: types.CallbackQuery):
-    task_id = int(callback.data.replace("show_options_", ""))
+@dp.callback_query(lambda c: c.data.startswith("options_"))
+async def options_callback(callback: types.CallbackQuery):
+    task_id = int(callback.data.replace("options_", ""))
     
     for question in OGE_QUESTIONS:
         if question["id"] == task_id and "options" in question:
@@ -1082,9 +1095,9 @@ async def show_options_callback(callback: types.CallbackQuery):
             await callback.answer()
             return
 
-@dp.callback_query(lambda c: c.data.startswith("option_"))
-async def option_callback(callback: types.CallbackQuery):
-    data = callback.data.replace("option_", "").split("_")
+@dp.callback_query(lambda c: c.data.startswith("opt_"))
+async def opt_callback(callback: types.CallbackQuery):
+    data = callback.data.replace("opt_", "").split("_")
     if len(data) != 2:
         await callback.answer()
         return
@@ -1121,9 +1134,9 @@ async def option_callback(callback: types.CallbackQuery):
             await callback.answer()
             return
 
-@dp.callback_query(lambda c: c.data.startswith("text_answer_"))
-async def text_answer_callback(callback: types.CallbackQuery):
-    task_id = int(callback.data.replace("text_answer_", ""))
+@dp.callback_query(lambda c: c.data.startswith("answer_"))
+async def answer_callback(callback: types.CallbackQuery):
+    task_id = int(callback.data.replace("answer_", ""))
     user_state = get_user_state(callback.from_user.id)
     
     for question in OGE_QUESTIONS:
@@ -1135,19 +1148,9 @@ async def text_answer_callback(callback: types.CallbackQuery):
             await callback.answer()
             return
 
-@dp.callback_query(lambda c: c.data.startswith("back_to_task_"))
-async def back_to_task_callback(callback: types.CallbackQuery):
-    task_id = int(callback.data.replace("back_to_task_", ""))
-    
-    for question in OGE_QUESTIONS:
-        if question["id"] == task_id:
-            await send_question(callback.from_user.id, question, edit_message=callback.message)
-            await callback.answer()
-            return
-
-@dp.callback_query(lambda c: c.data.startswith("theory_for_task_"))
-async def theory_for_task_callback(callback: types.CallbackQuery):
-    task_id = int(callback.data.replace("theory_for_task_", ""))
+@dp.callback_query(lambda c: c.data.startswith("theory_task_"))
+async def theory_task_callback(callback: types.CallbackQuery):
+    task_id = int(callback.data.replace("theory_task_", ""))
     
     topic_name = None
     for question in OGE_QUESTIONS:
@@ -1158,7 +1161,7 @@ async def theory_for_task_callback(callback: types.CallbackQuery):
     if topic_name:
         builder = InlineKeyboardBuilder()
         builder.button(text="📚 ПЕРЕЙТИ К ТЕОРИИ", callback_data=f"theory_{topic_name}")
-        builder.button(text="🔙 К ЗАДАНИЮ", callback_data=f"back_to_task_{task_id}")
+        builder.button(text="🔙 К ЗАДАНИЮ", callback_data=f"task_{task_id}")
         builder.adjust(1)
         
         await callback.message.answer(
@@ -1255,7 +1258,59 @@ async def exam_next_callback(callback: types.CallbackQuery):
             await finish_exam(callback, user_state)
     await callback.answer()
 
-# ========== ФУНКЦИИ ==========
+# ========== ФУНКЦИЯ ПРОВЕРКИ ТЕКСТОВЫХ ОТВЕТОВ ==========
+def check_text_answer(question, user_answer):
+    """Проверяет текстовый ответ на соответствие правильному"""
+    user_answer_lower = user_answer.lower()
+    
+    if question["type"] == "concept":
+        # Проверяем наличие двух понятий
+        correct_count = 0
+        for correct in question["correct_answers"][:2]:
+            if correct.lower() in user_answer_lower:
+                correct_count += 1
+        return correct_count >= 1
+    
+    elif question["type"] in ["photo", "situation", "diagram"]:
+        # Проверяем наличие ключевых слов
+        keywords = []
+        for ans in question["correct_answers"]:
+            keywords.extend(ans.lower().split())
+        keyword_count = sum(1 for word in keywords if word in user_answer_lower)
+        return keyword_count >= 2
+    
+    elif question["type"] == "matching":
+        # Проверяем формат соответствия
+        return any(str(i) in user_answer for i in range(1, 3)) and len(user_answer) >= 5
+    
+    elif question["type"] == "comparison":
+        # Проверяем наличие сходства и различия
+        return "сход" in user_answer_lower and "различ" in user_answer_lower
+    
+    elif question["type"] == "table":
+        # Проверяем правильное слово
+        correct = question["correct"].lower()
+        return correct in user_answer_lower
+    
+    elif question["type"] == "plan":
+        # Проверяем наличие пунктов плана
+        return len(user_answer.split("\n")) >= 3
+    
+    elif question["type"] == "text_questions":
+        # Проверяем наличие ответов на вопросы
+        return len(user_answer) >= 50
+    
+    elif question["type"] == "examples":
+        # Проверяем наличие примеров
+        return len(user_answer.split()) >= 20
+    
+    elif question["type"] == "argument":
+        # Проверяем наличие аргументов
+        return len(user_answer.split()) >= 30
+    
+    return False
+
+# ========== ФУНКЦИЯ ОТПРАВКИ ВОПРОСА ==========
 async def send_question(user_id, question, edit_message=None, is_exam=False):
     user_state = get_user_state(user_id)
     user_state.current_question = question
@@ -1274,6 +1329,7 @@ async def send_question(user_id, question, edit_message=None, is_exam=False):
     else:
         await bot.send_message(user_id, text, reply_markup=get_answer_keyboard(question["id"], question["type"], is_exam))
 
+# ========== ЗАВЕРШЕНИЕ ЭКЗАМЕНА ==========
 async def finish_exam(context, user_state):
     if isinstance(context, types.CallbackQuery):
         message = context.message
@@ -1338,13 +1394,19 @@ async def handle_text_messages(message: Message):
         answer = message.text.strip()
         
         if answer:
+            # Проверяем ответ
+            is_correct = check_text_answer(q, answer)
+            points = q["points"] if is_correct else 0
+            
             user_state.waiting_for_answer = False
-            user_state.add_result(True, q["points"], q["topic"])
             
             if user_state.current_exam:
-                user_state.exam_score += q["points"]
+                user_state.exam_score += points
+                user_state.add_exam_result(is_correct, points, q["topic"])
             
-            result = f"✅ <b>ОТВЕТ ПРИНЯТ!</b>\n\n"
+            user_state.add_result(is_correct, points, q["topic"])
+            
+            result = f"{'✅ ПРАВИЛЬНО!' if is_correct else '❌ НЕПРАВИЛЬНО'}\n\n"
             result += f"<b>Ваш ответ:</b> {answer[:200]}\n\n"
             result += f"<b>Объяснение:</b> {q['explanation']}\n\n"
             result += f"📊 Правильных: {user_state.correct_answers}\n"
@@ -1409,6 +1471,7 @@ async def main():
     print("📝 Вариант: 24 задания как на экзамене")
     print("🏆 Достижения: 7 типов")
     print("📄 Тексты 2 части: задания 21-24 с полными текстами")
+    print("✅ Проверка ответов: ВКЛЮЧЕНА")
     
     try:
         await bot.delete_webhook(drop_pending_updates=True)
@@ -1420,5 +1483,6 @@ if __name__ == "__main__":
     import time
     time.sleep(2)
     asyncio.run(main())
+
 
 
