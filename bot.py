@@ -340,6 +340,8 @@ class UserState:
             self.correct_answers += 1
             self.score += points
             self.perfect_answers_streak += 1
+            if self.perfect_answers_streak > self.achievements["perfectionist"]["progress"]:
+                self.achievements["perfectionist"]["progress"] = self.perfect_answers_streak
         else:
             self.perfect_answers_streak = 0
         
@@ -468,7 +470,7 @@ OGE_QUESTIONS = [
         "explanation": "✅ Правильно: Федерация и государство относятся к политической сфере. Государство — организация политической власти, управляющая обществом на определенной территории.",
         "topic": "Политика",
         "points": 2,
-        "type": "concept_explanation"
+        "type": "concept"
     },
     # ЗАДАНИЕ 2 - Человек и общество
     {
@@ -479,7 +481,7 @@ OGE_QUESTIONS = [
         "explanation": "✅ Правильно: создавать условия и средства жизни в совместной деятельности. Только человек способен к сознательной трудовой деятельности.",
         "topic": "Человек и общество",
         "points": 1,
-        "type": "single_choice"
+        "type": "choice"
     },
     # ЗАДАНИЕ 3 - Образование
     {
@@ -490,7 +492,7 @@ OGE_QUESTIONS = [
         "explanation": "✅ Правильно: основное общее образование. 8 класс — это основное общее образование (5-9 классы).",
         "topic": "Духовная культура",
         "points": 1,
-        "type": "single_choice"
+        "type": "choice"
     },
     # ЗАДАНИЕ 4 - Культура
     {
@@ -501,27 +503,27 @@ OGE_QUESTIONS = [
         "explanation": "✅ Верны оба суждения. Культура включает и воспитанность человека, и является «второй природой» — искусственной средой обитания.",
         "topic": "Духовная культура",
         "points": 1,
-        "type": "single_choice"
+        "type": "choice"
     },
     # ЗАДАНИЕ 5 - Фотография (семья)
     {
         "id": 5,
         "text": "📸 <b>ФОТОГРАФИЯ:</b> Семья за праздничным столом: родители, двое детей, бабушка и дедушка.\n\nКакой тип семьи (в зависимости от ее структуры/состава) может быть проиллюстрирован с помощью данной фотографии? Используя обществоведческие знания, сформулируйте два суждения о роли (значении) семьи в жизни человека.",
-        "correct_answers": ["Расширенная семья", "Семья дает эмоциональную поддержку", "Семья обеспечивает социализацию детей"],
+        "correct_answers": ["Расширенная семья", "Эмоциональная поддержка", "Социализация детей"],
         "explanation": "✅ На фото показана расширенная семья (несколько поколений). Роль семьи: 1) эмоциональная поддержка, 2) социализация детей.",
         "topic": "Социальная сфера",
         "points": 2,
-        "type": "photo_analysis"
+        "type": "photo"
     },
     # ЗАДАНИЕ 6 - Финансовая грамотность
     {
         "id": 6,
         "text": "С Алексеем связался сотрудник банка, в котором у него открыт вклад, и попросил назвать ПИН-код его банковской карточки, объясняя это необходимостью проверить баланс карты.\n\nОбъясните, в чем заключается опасность данной ситуации для личных финансов Алексея. Как ему в данной ситуации следует правильно поступить?",
-        "correct_answers": ["Опасность: мошенничество, кража денег", "Правильно: не сообщать ПИН-код, обратиться в банк"],
+        "correct_answers": ["Мошенничество, кража денег", "Не сообщать ПИН-код", "Обратиться в банк"],
         "explanation": "✅ Настоящие сотрудники банка никогда не спрашивают ПИН-код. Это мошенники. Нужно прекратить разговор и позвонить в банк.",
         "topic": "Экономика",
         "points": 2,
-        "type": "situation_analysis"
+        "type": "situation"
     },
     # ЗАДАНИЕ 7 - Налоги
     {
@@ -532,7 +534,7 @@ OGE_QUESTIONS = [
         "explanation": "✅ Правильно: акциз. Это косвенный налог, включенный в цену товаров (алкоголь, табак, бензин).",
         "topic": "Экономика",
         "points": 1,
-        "type": "single_choice"
+        "type": "choice"
     },
     # ЗАДАНИЕ 8 - Общественные блага
     {
@@ -543,7 +545,7 @@ OGE_QUESTIONS = [
         "explanation": "✅ Правильно: содержание вооруженных сил. Общественные блага — оборона, охрана порядка, которые доступны всем.",
         "topic": "Экономика",
         "points": 1,
-        "type": "single_choice"
+        "type": "choice"
     },
     # ЗАДАНИЕ 9 - Издержки производства
     {
@@ -554,7 +556,7 @@ OGE_QUESTIONS = [
         "explanation": "✅ Верны оба суждения. Переменные издержки (сырье, электроэнергия) меняются с объемом производства.",
         "topic": "Экономика",
         "points": 1,
-        "type": "single_choice"
+        "type": "choice"
     },
     # ЗАДАНИЕ 10 - Социальные нормы
     {
@@ -565,7 +567,7 @@ OGE_QUESTIONS = [
         "explanation": "✅ Правильно: предупреждение, запрет. Это санкции (реакции общества на соблюдение или нарушение норм).",
         "topic": "Социальная сфера",
         "points": 1,
-        "type": "single_choice"
+        "type": "choice"
     },
     # ЗАДАНИЕ 11 - Этнические группы
     {
@@ -576,22 +578,22 @@ OGE_QUESTIONS = [
         "explanation": "✅ Верно только А. Этнос имеет биологические (кровное родство) и социальные (культура) черты. Этносы существовали до государства.",
         "topic": "Социальная сфера",
         "points": 1,
-        "type": "single_choice"
+        "type": "choice"
     },
     # ЗАДАНИЕ 12 - Диаграмма (право)
     {
         "id": 12,
-        "text": "📊 <b>ДИАГРАММА:</b> Результаты опроса в стране Z о том, знание каких отраслей права больше всего нужно человеку.\n\nДанные: Трудовое право - 65%, Гражданское право - 50%, Административное право - 30%, Уголовное право - 25%.\n\nСформулируйте по одному выводу: а) о сходстве и б) о различии в позициях групп опрошенных. Выскажите предположение о том, чем объясняется: а) сходство; б) различие.",
+        "text": "📊 <b>ДИАГРАММА:</b> Результаты опроса в стране Z о том, знание каких отраслей права больше всего нужно человеку (можно было дать несколько ответов).\n\nРезультаты:\nТрудовое право - 65%\nГражданское право - 50%\nАдминистративное право - 30%\nУголовное право - 25%\n\nСформулируйте по одному выводу: а) о сходстве и б) о различии в позициях групп опрошенных. Выскажите предположение о том, чем объясняется: а) сходство; б) различие.",
         "correct_answers": [
             "Сходство: трудовое и гражданское право названы чаще других",
-            "Различие: разный процент выбравших каждую отрасль",
+            "Различие: разные проценты по каждой отрасли",
             "Сходство объясняется: эти отрасли чаще нужны в повседневной жизни",
-            "Различие объясняется: разным опытом и профессиями людей"
+            "Различие объясняется: разным профессиональным опытом людей"
         ],
-        "explanation": "✅ Трудовое и гражданское право наиболее важны в повседневной жизни (работа, покупки). Различия связаны с личным опытом.",
+        "explanation": "✅ Трудовое и гражданское право наиболее важны в повседневной жизни (работа, покупки). Различия связаны с личным опытом и профессией.",
         "topic": "Право",
         "points": 3,
-        "type": "diagram_analysis"
+        "type": "diagram"
     },
     # ЗАДАНИЕ 13 - Разделение властей
     {
@@ -602,7 +604,7 @@ OGE_QUESTIONS = [
         "explanation": "✅ Правильно: разделение властей. Запрет совмещать должности в разных ветвях власти — принцип разделения властей.",
         "topic": "Политика",
         "points": 1,
-        "type": "single_choice"
+        "type": "choice"
     },
     # ЗАДАНИЕ 14 - Политические режимы
     {
@@ -613,12 +615,12 @@ OGE_QUESTIONS = [
         "explanation": "✅ Оба суждения неверны. В недемократических режимах выборы часто безальтернативны. В демократии — тайное голосование.",
         "topic": "Политика",
         "points": 1,
-        "type": "single_choice"
+        "type": "choice"
     },
     # ЗАДАНИЕ 15 - Соответствие (правонарушения и ответственность)
     {
         "id": 15,
-        "text": "Установите соответствие между примерами правонарушений и видами юридической ответственности:\n\nА) безбилетный проезд в автобусе\nБ) регулярное опоздание на работу\nВ) нарушение правил пожарной безопасности в офисе\nГ) увольнение без отработки 2 недель\nД) небрежность, повлекшая ущерб имуществу фирмы\n\n1) административная ответственность\n2) дисциплинарная ответственность",
+        "text": "Установите соответствие между примерами правонарушений и видами юридической ответственности:\n\nПРАВОНАРУШЕНИЯ:\nА) безбилетный проезд в автобусе\nБ) регулярное опоздание на работу\nВ) нарушение правил пожарной безопасности в офисе\nГ) увольнение без отработки 2 недель\nД) небрежность, повлекшая ущерб имуществу фирмы\n\nВИДЫ ОТВЕТСТВЕННОСТИ:\n1) административная ответственность\n2) дисциплинарная ответственность\n\nЗапишите в ответ цифры, расположив их в порядке, соответствующем буквам: А, Б, В, Г, Д",
         "correct_mapping": {"А": "1", "Б": "2", "В": "1", "Г": "2", "Д": "2"},
         "explanation": "✅ А-1 (административная), Б-2 (дисциплинарная), В-1 (административная), Г-2 (дисциплинарная), Д-2 (дисциплинарная).",
         "topic": "Право",
@@ -634,7 +636,7 @@ OGE_QUESTIONS = [
         "explanation": "✅ Правильно: гражданское право. Регулирует имущественные отношения (купля-продажа, аренда) и личные неимущественные (честь, достоинство).",
         "topic": "Право",
         "points": 1,
-        "type": "single_choice"
+        "type": "choice"
     },
     # ЗАДАНИЕ 17 - Трудовое право
     {
@@ -645,7 +647,7 @@ OGE_QUESTIONS = [
         "explanation": "✅ Правильно: 35 часов. Для несовершеннолетних от 16 до 18 лет — не более 35 часов в неделю.",
         "topic": "Право",
         "points": 1,
-        "type": "single_choice"
+        "type": "choice"
     },
     # ЗАДАНИЕ 18 - Федеративное устройство
     {
@@ -656,12 +658,12 @@ OGE_QUESTIONS = [
         "explanation": "✅ Верно только А. Гражданство РФ — в исключительном ведении РФ, а не в совместном.",
         "topic": "Политика",
         "points": 1,
-        "type": "single_choice"
+        "type": "choice"
     },
     # ЗАДАНИЕ 19 - Сравнение выборов и референдума
     {
         "id": 19,
-        "text": "Сравните выборы и референдум. Выберите и запишите черты сходства и черты различия:\n\n1) тайное голосование граждан\n2) граждане выражают одобрение или неодобрение какого-либо решения, закона\n3) голосование за кандидатов на государственные должности\n4) правом голоса обладают только совершеннолетние граждане",
+        "text": "Сравните выборы и референдум. Выберите и запишите черты сходства и черты различия:\n\n1) тайное голосование граждан\n2) граждане выражают одобрение или неодобрение какого-либо решения, закона\n3) голосование за кандидатов на государственные должности\n4) правом голоса обладают только совершеннолетние граждане\n\nЧерты сходства: ...\nЧерты различия: ...",
         "correct_mapping": {"similarities": [0, 3], "differences": [1, 2]},
         "explanation": "✅ Сходство: 1 (тайное голосование) и 4 (совершеннолетние). Различие: 2 (референдум — за закон) и 3 (выборы — за кандидатов).",
         "topic": "Политика",
@@ -671,30 +673,30 @@ OGE_QUESTIONS = [
     # ЗАДАНИЕ 20 - Таблица (социальные нормы)
     {
         "id": 20,
-        "text": "Запишите слово, пропущенное в таблице.\n\nВИД | ХАРАКТЕРИСТИКА\nПравовые нормы | Формально определенные правила, установленные государством\nНормы ______________ | Правила поведения, в которых выражаются представления людей о добре и зле",
-        "correct": "Морали",
+        "text": "Запишите слово, пропущенное в таблице.\n\nВИД | ХАРАКТЕРИСТИКА\nПравовые нормы | Формально определенные правила поведения, установленные либо санкционированные государством\nНормы ______________ | Правила поведения, в которых выражаются представления людей о добре и зле",
+        "correct": "морали",
         "explanation": "✅ Правильно: морали. Моральные нормы — представления о добре и зле.",
         "topic": "Право",
         "points": 1,
-        "type": "table_fill"
+        "type": "table"
     },
-    # ЗАДАНИЕ 21 - План текста
+    # ЗАДАНИЕ 21 - План текста (БОЛЬШОЙ ТЕКСТ)
     {
         "id": 21,
-        "text": "Прочитайте текст об экологических проблемах. Составьте план текста.\n\n«Под угрозой сейчас находится большинство оставшихся высших видов растений и животных. Те из них, которые человек избрал для удовлетворения своих потребностей, давно уже приспособлены к его требованиям, но дикие виды, для которых нет места в мире человека, обречены. Их погубят не только охота и истребление, но и сведение лесов под поля, шахты, дороги, а главное — превращение обширных участков дикой природы в города и промышленные комплексы. Человек, придя в будущее, должен иметь возможность увидеть Землю не только как всеобщую стройплощадку и всеобщую ферму, но и как дикую природу, оставшуюся нетронутой. Она необходима и как среда обитания самого человека, поскольку он биологически сформировался в естественной, открытой среде. Она необходима и для этического воспитания человека: ничто так не воспитывает доброту, как контакт с дикой природой. Забота о сохранении дикой природы — неотъемлемая часть развития цивилизации, обязательное условие прогресса.»",
+        "text": "Прочитайте текст и выполните задания 21-24.\n\n<b>Текст:</b>\n\n«Под угрозой сейчас находится большинство оставшихся высших видов растений и животных. Те из них, которые человек избрал для удовлетворения своих потребностей, давно уже приспособлены к его требованиям, но дикие виды, для которых нет места в мире человека, обречены. Их погубят не только охота и истребление, но и сведение лесов под поля, шахты, дороги, а главное — превращение обширных участков дикой природы в города и промышленные комплексы. \n\nЧеловек, придя в будущее, должен иметь возможность увидеть Землю не только как всеобщую стройплощадку и всеобщую ферму, но и как дикую природу, оставшуюся нетронутой. Она необходима и как среда обитания самого человека, поскольку он биологически сформировался в естественной, открытой среде. Она необходима и для этического воспитания человека: ничто так не воспитывает доброту, как контакт с дикой природой. \n\nЗабота о сохранении дикой природы — неотъемлемая часть развития цивилизации, обязательное условие прогресса.»\n\n<b>Задание 21.</b> Составьте план текста. Для этого выделите основные смысловые фрагменты текста и озаглавьте каждый из них.",
         "correct_plan": "1. Угроза дикой природе\n2. Причины исчезновения видов\n3. Значение дикой природы для человека\n4. Забота о природе как условие прогресса",
         "explanation": "✅ План должен отражать: угрозу природе, причины, значение для человека, роль в развитии цивилизации.",
         "topic": "Человек и общество",
         "points": 2,
-        "type": "text_plan"
+        "type": "plan"
     },
     # ЗАДАНИЕ 22 - Вопросы по тексту
     {
         "id": 22,
-        "text": "Назовите три глобальные проблемы современности, о которых не упоминается в данном фрагменте текста. В чем, по мнению автора, выражается основная экономическая проблема общества? Поясните, почему эта проблема приобрела особую актуальность в современном обществе?",
+        "text": "Прочитайте текст (задание 21).\n\n<b>Задание 22.</b> Назовите три глобальные проблемы современности, о которых не упоминается в данном фрагменте текста. В чем, по мнению автора, выражается основная экономическая проблема общества? Поясните, почему эта проблема приобрела особую актуальность в современном обществе?",
         "correct_answers": [
-            "Глобальные проблемы: международный терроризм, демографическая, Север-Юг",
-            "Основная проблема: ограниченность ресурсов и рост потребностей",
+            "Глобальные проблемы: международный терроризм, демографическая проблема, проблема Север-Юг",
+            "Основная экономическая проблема: ограниченность ресурсов и рост потребностей",
             "Актуальность: НТР увеличила потребности, ресурсы истощаются"
         ],
         "explanation": "✅ Глобальные проблемы: терроризм, демография, разрыв в развитии. Экономическая проблема — ограниченность ресурсов при росте потребностей.",
@@ -705,10 +707,10 @@ OGE_QUESTIONS = [
     # ЗАДАНИЕ 23 - Объяснение и примеры
     {
         "id": 23,
-        "text": "Предположите, что имеет в виду автор, утверждая: «Наделив нас невиданной дотоле силой и привив вкус к такому уровню жизни, о котором мы даже не помышляли, НТР не дает нам порой мудрости, чтобы держать под контролем наши возможности и запросы». Объяснения представьте в трех примерах.",
+        "text": "Прочитайте текст (задание 21).\n\n<b>Задание 23.</b> Предположите, что имеет в виду автор, утверждая: «Наделив нас невиданной дотоле силой и привив вкус к такому уровню жизни, о котором мы даже не помышляли, НТР не дает нам порой мудрости, чтобы держать под контролем наши возможности и запросы». Объяснения представьте в трех примерах.",
         "correct_answers": [
-            "1. Атомная энергия — оружие и аварии",
-            "2. Интернет — доступ к информации и зависимость",
+            "1. Атомная энергия — оружие массового поражения и аварии на АЭС",
+            "2. Интернет — доступ к информации и интернет-зависимость",
             "3. Искусственный интеллект — автоматизация и безработица"
         ],
         "explanation": "✅ НТР дает мощные технологии, но не всегда мудрость их использования. Примеры: атомная энергия, интернет, ИИ.",
@@ -719,16 +721,16 @@ OGE_QUESTIONS = [
     # ЗАДАНИЕ 24 - Аргументация
     {
         "id": 24,
-        "text": "Используя обществоведческие знания, выскажите свою точку зрения, возможно ли в ближайшем будущем преодолеть контраст между сверхразвитыми и слаборазвитыми странами? Приведите два аргумента, подкрепляющих вашу позицию.",
+        "text": "Прочитайте текст (задание 21).\n\n<b>Задание 24.</b> Используя обществоведческие знания, выскажите свою точку зрения, возможно ли в ближайшем будущем преодолеть контраст между сверхразвитыми и слаборазвитыми странами? Приведите два аргумента, подкрепляющих вашу позицию.",
         "correct_answers": [
-            "Позиция: невозможно полностью преодолеть",
-            "Аргумент 1: разный уровень развития и стартовые условия",
+            "Позиция: невозможно полностью преодолеть контраст в ближайшем будущем",
+            "Аргумент 1: разные стартовые условия и уровни экономического развития",
             "Аргумент 2: развитые страны не заинтересованы в равноправной конкуренции"
         ],
         "explanation": "✅ Полностью преодолеть разрыв в ближайшем будущем вряд ли возможно из-за разницы в развитии и интересов развитых стран.",
         "topic": "Человек и общество",
         "points": 3,
-        "type": "argumentation"
+        "type": "argument"
     }
 ]
 
@@ -783,12 +785,12 @@ def get_tasks_keyboard():
     builder = InlineKeyboardBuilder()
     
     for i in range(1, 25):
-        builder.button(text=f"№{i}", callback_data=f"task_{i}")
+        builder.button(text=f"{i}", callback_data=f"task_{i}")
     
     builder.button(text="🎲 СЛУЧАЙНОЕ", callback_data="random_task")
     builder.button(text="🔙 НАЗАД", callback_data="back_main")
     
-    builder.adjust(5, 5, 5, 5, 4, 2)
+    builder.adjust(6, 6, 6, 6, 2)
     return builder.as_markup()
 
 def get_achievements_keyboard():
@@ -802,15 +804,14 @@ def get_achievements_keyboard():
 def get_answer_keyboard(task_id, question_type, is_exam=False):
     builder = InlineKeyboardBuilder()
     
-    if question_type == "single_choice":
-        builder.button(text="🔘 ВЫБРАТЬ ОТВЕТ", callback_data=f"single_{task_id}")
+    if question_type == "choice":
+        builder.button(text="🔘 ВЫБРАТЬ ОТВЕТ", callback_data=f"show_options_{task_id}")
     else:
-        builder.button(text="📝 НАПИСАТЬ ОТВЕТ", callback_data=f"text_{task_id}")
+        builder.button(text="📝 НАПИСАТЬ ОТВЕТ", callback_data=f"text_answer_{task_id}")
     
     if not is_exam:
-        builder.button(text="📚 ТЕОРИЯ", callback_data=f"show_theory_{task_id}")
-    
-    builder.button(text="🎲 СЛУЧАЙНОЕ", callback_data="random_task")
+        builder.button(text="📚 ТЕОРИЯ", callback_data=f"theory_for_task_{task_id}")
+        builder.button(text="🎲 СЛУЧАЙНОЕ", callback_data="random_task")
     
     builder.adjust(1, 2)
     return builder.as_markup()
@@ -818,9 +819,9 @@ def get_answer_keyboard(task_id, question_type, is_exam=False):
 def get_options_keyboard(options, question_id):
     builder = InlineKeyboardBuilder()
     for i, option in enumerate(options):
-        builder.button(text=f"{i+1}. {option[:20]}...", callback_data=f"answer_{question_id}_{i}")
+        builder.button(text=f"{i+1}. {option[:30]}", callback_data=f"option_{question_id}_{i}")
     
-    builder.button(text="🔙 НАЗАД", callback_data=f"back_to_question_{question_id}")
+    builder.button(text="🔙 НАЗАД", callback_data=f"back_to_task_{question_id}")
     builder.adjust(1)
     return builder.as_markup()
 
@@ -968,7 +969,6 @@ async def full_exam_command(message: Message):
     exam_questions = []
     for question in OGE_QUESTIONS:
         q = question.copy()
-        q["task_number"] = q["id"]
         exam_questions.append(q)
     
     user_state.current_exam = exam_questions
@@ -987,6 +987,7 @@ async def full_exam_command(message: Message):
 # ========== ОБРАБОТЧИКИ CALLBACK ==========
 @dp.callback_query(lambda c: c.data == "back_main")
 async def back_main_callback(callback: types.CallbackQuery):
+    await callback.message.delete()
     await callback.message.answer("Главное меню:", reply_markup=get_main_keyboard())
     await callback.answer()
 
@@ -998,7 +999,7 @@ async def back_theory_callback(callback: types.CallbackQuery):
     )
     await callback.answer()
 
-@dp.callback_query(lambda c: c.data.startswith("theory_") and not c.data.startswith("theory_topic_"))
+@dp.callback_query(lambda c: c.data.startswith("theory_"))
 async def theory_topic_callback(callback: types.CallbackQuery):
     topic_name = callback.data.replace("theory_", "")
     
@@ -1059,6 +1060,7 @@ async def task_callback(callback: types.CallbackQuery):
             await send_question(callback.from_user.id, question, edit_message=callback.message)
     except:
         await callback.answer("❌ Ошибка", show_alert=True)
+    await callback.answer()
 
 @dp.callback_query(lambda c: c.data == "random_task")
 async def random_task_callback(callback: types.CallbackQuery):
@@ -1067,6 +1069,104 @@ async def random_task_callback(callback: types.CallbackQuery):
     user_state.update_daily_streak()
     
     await send_question(callback.from_user.id, question, edit_message=callback.message)
+    await callback.answer()
+
+@dp.callback_query(lambda c: c.data.startswith("show_options_"))
+async def show_options_callback(callback: types.CallbackQuery):
+    task_id = int(callback.data.replace("show_options_", ""))
+    
+    for question in OGE_QUESTIONS:
+        if question["id"] == task_id and "options" in question:
+            keyboard = get_options_keyboard(question["options"], task_id)
+            await callback.message.edit_reply_markup(reply_markup=keyboard)
+            await callback.answer()
+            return
+
+@dp.callback_query(lambda c: c.data.startswith("option_"))
+async def option_callback(callback: types.CallbackQuery):
+    data = callback.data.replace("option_", "").split("_")
+    if len(data) != 2:
+        await callback.answer()
+        return
+    
+    task_id = int(data[0])
+    answer_index = int(data[1])
+    
+    user_state = get_user_state(callback.from_user.id)
+    user_state.update_daily_streak()
+    
+    for question in OGE_QUESTIONS:
+        if question["id"] == task_id:
+            is_correct = answer_index == question["correct"]
+            points = question["points"] if is_correct else 0
+            
+            if user_state.current_exam:
+                user_state.exam_score += points
+                user_state.add_exam_result(is_correct, points, question["topic"])
+            
+            user_state.add_result(is_correct, points, question["topic"])
+            
+            result = f"{'✅ ПРАВИЛЬНО!' if is_correct else '❌ НЕПРАВИЛЬНО'}\n\n"
+            result += f"<b>Ваш ответ:</b> {answer_index + 1}\n"
+            result += f"<b>Правильный ответ:</b> {question['correct'] + 1}\n\n"
+            result += f"<b>Объяснение:</b> {question['explanation']}\n\n"
+            result += f"📊 Правильных: {user_state.correct_answers}\n"
+            result += f"⭐ Баллы: {user_state.score}\n"
+            result += f"🔥 Серия: {user_state.perfect_answers_streak}"
+            
+            await callback.message.edit_text(
+                result,
+                reply_markup=get_answer_keyboard(task_id, question["type"], user_state.current_exam is not None)
+            )
+            await callback.answer()
+            return
+
+@dp.callback_query(lambda c: c.data.startswith("text_answer_"))
+async def text_answer_callback(callback: types.CallbackQuery):
+    task_id = int(callback.data.replace("text_answer_", ""))
+    user_state = get_user_state(callback.from_user.id)
+    
+    for question in OGE_QUESTIONS:
+        if question["id"] == task_id:
+            user_state.current_question = question
+            user_state.waiting_for_answer = True
+            
+            await callback.message.answer("📝 <b>Напишите ответ в чат:</b>")
+            await callback.answer()
+            return
+
+@dp.callback_query(lambda c: c.data.startswith("back_to_task_"))
+async def back_to_task_callback(callback: types.CallbackQuery):
+    task_id = int(callback.data.replace("back_to_task_", ""))
+    
+    for question in OGE_QUESTIONS:
+        if question["id"] == task_id:
+            await send_question(callback.from_user.id, question, edit_message=callback.message)
+            await callback.answer()
+            return
+
+@dp.callback_query(lambda c: c.data.startswith("theory_for_task_"))
+async def theory_for_task_callback(callback: types.CallbackQuery):
+    task_id = int(callback.data.replace("theory_for_task_", ""))
+    
+    topic_name = None
+    for question in OGE_QUESTIONS:
+        if question["id"] == task_id:
+            topic_name = question["topic"]
+            break
+    
+    if topic_name:
+        builder = InlineKeyboardBuilder()
+        builder.button(text="📚 ПЕРЕЙТИ К ТЕОРИИ", callback_data=f"theory_{topic_name}")
+        builder.button(text="🔙 К ЗАДАНИЮ", callback_data=f"back_to_task_{task_id}")
+        builder.adjust(1)
+        
+        await callback.message.answer(
+            f"📚 <b>ТЕМА:</b> {topic_name}\n\n"
+            f"Перейдите в раздел теории для изучения.",
+            reply_markup=builder.as_markup()
+        )
+    await callback.answer()
 
 @dp.callback_query(lambda c: c.data == "my_achievements")
 async def my_achievements_callback(callback: types.CallbackQuery):
@@ -1140,103 +1240,6 @@ async def back_achievements_callback(callback: types.CallbackQuery):
         f"Выберите опцию:",
         reply_markup=get_achievements_keyboard()
     )
-    await callback.answer()
-
-@dp.callback_query(lambda c: c.data.startswith("single_"))
-async def single_choice_callback(callback: types.CallbackQuery):
-    task_id = int(callback.data.replace("single_", ""))
-    
-    for question in OGE_QUESTIONS:
-        if question["id"] == task_id and "options" in question:
-            keyboard = get_options_keyboard(question["options"], task_id)
-            await callback.message.edit_reply_markup(reply_markup=keyboard)
-            await callback.answer()
-            return
-
-@dp.callback_query(lambda c: c.data.startswith("answer_"))
-async def answer_callback(callback: types.CallbackQuery):
-    data = callback.data.replace("answer_", "").split("_")
-    if len(data) != 2:
-        await callback.answer()
-        return
-    
-    task_id = int(data[0])
-    answer_index = int(data[1])
-    
-    user_state = get_user_state(callback.from_user.id)
-    user_state.update_daily_streak()
-    
-    for question in OGE_QUESTIONS:
-        if question["id"] == task_id:
-            is_correct = answer_index == question["correct"]
-            points = question["points"] if is_correct else 0
-            
-            if user_state.current_exam:
-                user_state.exam_score += points
-                user_state.add_exam_result(is_correct, points, question["topic"])
-            
-            user_state.add_result(is_correct, points, question["topic"])
-            
-            result = f"{'✅ ПРАВИЛЬНО!' if is_correct else '❌ НЕПРАВИЛЬНО'}\n\n"
-            result += f"<b>Ваш ответ:</b> {answer_index + 1}\n"
-            result += f"<b>Правильный ответ:</b> {question['correct'] + 1}\n\n"
-            result += f"<b>Объяснение:</b> {question['explanation']}\n\n"
-            result += f"📊 Правильных: {user_state.correct_answers}\n"
-            result += f"⭐ Баллы: {user_state.score}\n"
-            result += f"🔥 Серия: {user_state.perfect_answers_streak}"
-            
-            await callback.message.edit_text(
-                result,
-                reply_markup=get_answer_keyboard(task_id, question["type"], user_state.current_exam is not None)
-            )
-            await callback.answer()
-            return
-
-@dp.callback_query(lambda c: c.data.startswith("text_"))
-async def text_answer_callback(callback: types.CallbackQuery):
-    task_id = int(callback.data.replace("text_", ""))
-    user_state = get_user_state(callback.from_user.id)
-    
-    for question in OGE_QUESTIONS:
-        if question["id"] == task_id:
-            user_state.current_question = question
-            user_state.waiting_for_answer = True
-            
-            await callback.message.answer("📝 <b>Напишите ответ в чат:</b>")
-            await callback.answer()
-            return
-
-@dp.callback_query(lambda c: c.data.startswith("back_to_question_"))
-async def back_to_question_callback(callback: types.CallbackQuery):
-    task_id = int(callback.data.replace("back_to_question_", ""))
-    
-    for question in OGE_QUESTIONS:
-        if question["id"] == task_id:
-            await send_question(callback.from_user.id, question, edit_message=callback.message)
-            await callback.answer()
-            return
-
-@dp.callback_query(lambda c: c.data.startswith("show_theory_"))
-async def show_theory_callback(callback: types.CallbackQuery):
-    task_id = int(callback.data.replace("show_theory_", ""))
-    
-    topic_name = None
-    for question in OGE_QUESTIONS:
-        if question["id"] == task_id:
-            topic_name = question["topic"]
-            break
-    
-    if topic_name:
-        builder = InlineKeyboardBuilder()
-        builder.button(text="📚 ПЕРЕЙТИ К ТЕОРИИ", callback_data=f"theory_{topic_name}")
-        builder.button(text="🔙 К ЗАДАНИЮ", callback_data=f"back_to_question_{task_id}")
-        builder.adjust(1)
-        
-        await callback.message.answer(
-            f"📚 <b>ТЕМА:</b> {topic_name}\n\n"
-            f"Перейдите в раздел теории для изучения.",
-            reply_markup=builder.as_markup()
-        )
     await callback.answer()
 
 @dp.callback_query(lambda c: c.data == "exam_next")
@@ -1329,11 +1332,42 @@ async def handle_text_messages(message: Message):
     user_state = get_user_state(message.from_user.id)
     user_state.update_daily_streak()
     
-    if not user_state.waiting_for_answer or not user_state.current_question:
-        if message.text.strip().isdigit():
-            num = int(message.text.strip())
-            q = user_state.current_question
-            if q and "options" in q and 1 <= num <= len(q["options"]):
+    # Если ждем ответ на текстовое задание
+    if user_state.waiting_for_answer and user_state.current_question:
+        q = user_state.current_question
+        answer = message.text.strip()
+        
+        if answer:
+            user_state.waiting_for_answer = False
+            user_state.add_result(True, q["points"], q["topic"])
+            
+            if user_state.current_exam:
+                user_state.exam_score += q["points"]
+            
+            result = f"✅ <b>ОТВЕТ ПРИНЯТ!</b>\n\n"
+            result += f"<b>Ваш ответ:</b> {answer[:200]}\n\n"
+            result += f"<b>Объяснение:</b> {q['explanation']}\n\n"
+            result += f"📊 Правильных: {user_state.correct_answers}\n"
+            result += f"⭐ Баллы: {user_state.score}\n"
+            result += f"🔥 Серия: {user_state.perfect_answers_streak}"
+            
+            await message.answer(result)
+            
+            if user_state.current_exam:
+                if user_state.current_exam_index < len(user_state.current_exam) - 1:
+                    builder = InlineKeyboardBuilder()
+                    builder.button(text="➡️ СЛЕДУЮЩЕЕ", callback_data="exam_next")
+                    await message.answer("Продолжить?", reply_markup=builder.as_markup())
+                else:
+                    await finish_exam(message, user_state)
+            return
+    
+    # Если не ждем ответ, но пользователь ввел цифру (для выбора варианта)
+    if message.text.strip().isdigit():
+        num = int(message.text.strip())
+        if user_state.current_question and "options" in user_state.current_question:
+            if 1 <= num <= len(user_state.current_question["options"]):
+                q = user_state.current_question
                 is_correct = (num - 1) == q["correct"]
                 points = q["points"] if is_correct else 0
                 
@@ -1359,34 +1393,12 @@ async def handle_text_messages(message: Message):
                         await message.answer("Продолжить?", reply_markup=builder.as_markup())
                     else:
                         await finish_exam(message, user_state)
-        return
-    
-    q = user_state.current_question
-    answer = message.text.strip()
-    
-    if answer:
-        user_state.waiting_for_answer = False
-        user_state.add_result(True, q["points"], q["topic"])
-        
-        if user_state.current_exam:
-            user_state.exam_score += q["points"]
-        
-        result = f"✅ <b>ОТВЕТ ПРИНЯТ!</b>\n\n"
-        result += f"<b>Ваш ответ:</b> {answer[:200]}\n\n"
-        result += f"<b>Объяснение:</b> {q['explanation']}\n\n"
-        result += f"📊 Правильных: {user_state.correct_answers}\n"
-        result += f"⭐ Баллы: {user_state.score}\n"
-        result += f"🔥 Серия: {user_state.perfect_answers_streak}"
-        
-        await message.answer(result)
-        
-        if user_state.current_exam:
-            if user_state.current_exam_index < len(user_state.current_exam) - 1:
-                builder = InlineKeyboardBuilder()
-                builder.button(text="➡️ СЛЕДУЮЩЕЕ", callback_data="exam_next")
-                await message.answer("Продолжить?", reply_markup=builder.as_markup())
-            else:
-                await finish_exam(message, user_state)
+                return
+
+@dp.callback_query(lambda c: c.data == "stats")
+async def stats_callback(callback: types.CallbackQuery):
+    await stats_command(callback.message)
+    await callback.answer()
 
 # ========== ЗАПУСК ==========
 async def main():
@@ -1396,6 +1408,7 @@ async def main():
     print("🎯 Задания: 24 задания ОГЭ в правильном порядке")
     print("📝 Вариант: 24 задания как на экзамене")
     print("🏆 Достижения: 7 типов")
+    print("📄 Тексты 2 части: задания 21-24 с полными текстами")
     
     try:
         await bot.delete_webhook(drop_pending_updates=True)
@@ -1407,4 +1420,5 @@ if __name__ == "__main__":
     import time
     time.sleep(2)
     asyncio.run(main())
+
 
