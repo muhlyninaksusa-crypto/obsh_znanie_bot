@@ -33,7 +33,7 @@ storage = MemoryStorage()
 bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher(storage=storage)
 
-# ========== ТЕМЫ С ПОДТЕМАМИ - РАСШИРЕННАЯ ВЕРСИЯ ==========
+# ========== ТЕМЫ С ПОДТЕМАМИ ==========
 THEORY_DETAILED = {
     "Человек и общество": {
         "1. Общество как система": {
@@ -821,6 +821,7 @@ class UserState:
         self.exam_score = 0
         self.topic_stats = {}
         self.waiting_for_answer = False
+        self.in_exam_mode = False  # Новый флаг для режима экзамена
         
         # Геймификация
         self.achievements = {k: v.copy() for k, v in ACHIEVEMENTS.items()}
@@ -1328,6 +1329,7 @@ async def exam_start(m: Message):
     user.current_exam = [q.copy() for q in OGE_QUESTIONS]
     user.current_exam_index = 0
     user.exam_score = 0
+    user.in_exam_mode = True  # Включаем режим экзамена
     await m.answer("📝 <b>НАЧИНАЕМ ВАРИАНТ ОГЭ!</b>\n\nЗадание 1/24:")
     await send_question(m.from_user.id, user.current_exam[0], exam_mode=True)
 
@@ -1339,12 +1341,21 @@ async def achievements_menu(m: Message):
 async def stats_menu(m: Message):
     user = get_user_state(m.from_user.id)
     prog = user.get_progress_summary()
-    await m.answer(f"📊 СТАТИСТИКА\n\n✅ Заданий: {prog['total_questions']}\n🎯 Точность: {prog['accuracy']}%")
+    weak = user.get_weak_topics(3)
+    
+    text = f"📊 СТАТИСТИКА\n\n✅ Заданий: {prog['total_questions']}\n🎯 Правильных: {prog['correct_answers']} ({prog['accuracy']}%)\n⭐ Баллов: {prog['total_score']}\n🔥 Серия: {prog['perfect_answers_streak']}"
+    
+    if weak:
+        text += f"\n\n📚 Повторите:"
+        for t in weak:
+            text += f"\n• {t['topic']} - {t['accuracy']:.0f}%"
+    
+    await m.answer(text)
 
 @dp.message(lambda m: m.text == "🔄 ПОВТОРИТЬ")
 async def repeat_menu(m: Message):
     user = get_user_state(m.from_user.id)
-    weak = user.get_weak_topics(2)
+    weak = user.get_weak_topics(3)
     if weak:
         text = "📚 ПОВТОРИТЕ:\n"
         kb = InlineKeyboardBuilder()
@@ -1375,10 +1386,10 @@ async def cb_back_to_tasks(c: CallbackQuery):
     await c.message.answer("🎯 <b>ВЫБЕРИТЕ НОМЕР ЗАДАНИЯ (1-24):</b>", reply_markup=get_tasks_keyboard())
     await c.answer()
 
-# ОБРАБОТЧИК ТЕМ - РАБОТАЕТ!
+# ОБРАБОТЧИК ТЕМ
 @dp.callback_query(lambda c: c.data.startswith("t_"))
 async def cb_theory_topic(c: CallbackQuery):
-    key = c.data[2:]  # t_t1 -> t1
+    key = c.data[2:]
     topic = None
     for t, k in TOPIC_KEYS.items():
         if k == key:
@@ -1392,10 +1403,10 @@ async def cb_theory_topic(c: CallbackQuery):
         )
     await c.answer()
 
-# ОБРАБОТЧИК ПОДТЕМ - РАБОТАЕТ!
+# ОБРАБОТЧИК ПОДТЕМ
 @dp.callback_query(lambda c: c.data.startswith("s_"))
 async def cb_subtopic(c: CallbackQuery):
-    key = c.data[2:]  # s_11 -> s11
+    key = c.data[2:]
     if key in SUBTOPIC_KEYS:
         topic, subtopic = SUBTOPIC_KEYS[key]
         data = THEORY_DETAILED[topic][subtopic]
@@ -1425,6 +1436,7 @@ async def cb_task(c: CallbackQuery):
             q = OGE_QUESTIONS[num-1].copy()
             user = get_user_state(c.from_user.id)
             user.current_question = q
+            user.in_exam_mode = False  # Явно указываем, что это не экзамен
             await send_question(c.from_user.id, q, c.message, exam_mode=False)
     except:
         await c.answer("❌ Ошибка", True)
@@ -1435,6 +1447,7 @@ async def cb_random_task(c: CallbackQuery):
     q = random.choice(OGE_QUESTIONS).copy()
     user = get_user_state(c.from_user.id)
     user.current_question = q
+    user.in_exam_mode = False  # Явно указываем, что это не экзамен
     await send_question(c.from_user.id, q, c.message, exam_mode=False)
     await c.answer()
 
@@ -1462,9 +1475,10 @@ async def cb_select_option(c: CallbackQuery):
     for q in OGE_QUESTIONS:
         if q["id"] == qid:
             correct = ans == q["correct"]
+            # Баллы начисляем ТОЛЬКО если ответ правильный
             points = q["points"] if correct else 0
             
-            exam_mode = bool(user.current_exam)
+            exam_mode = user.in_exam_mode  # Используем флаг пользователя
             if exam_mode:
                 user.exam_score += points
             
@@ -1472,10 +1486,12 @@ async def cb_select_option(c: CallbackQuery):
             
             text = f"{'✅ ПРАВИЛЬНО!' if correct else '❌ НЕПРАВИЛЬНО'}\n\n"
             text += f"<b>Ваш ответ:</b> {ans+1}\n"
-            text += f"<b>Правильный ответ:</b> {q['correct']+1}\n\n"
+            if not correct:
+                text += f"<b>Правильный ответ:</b> {q['correct']+1}\n\n"
             text += f"<b>Объяснение:</b> {q['explanation']}\n\n"
             text += f"📊 Правильных: {user.correct_answers}\n"
-            text += f"⭐ Баллов: {user.score}"
+            text += f"⭐ Баллов: {user.score}\n"
+            text += f"🔥 Серия: {user.perfect_answers_streak}"
             
             await c.message.edit_text(
                 text, 
@@ -1503,6 +1519,7 @@ async def cb_next_exam(c: CallbackQuery):
     if user.current_exam:
         if user.current_exam_index < len(user.current_exam) - 1:
             user.current_exam_index += 1
+            user.in_exam_mode = True  # Сохраняем режим экзамена
             await send_question(
                 c.from_user.id, 
                 user.current_exam[user.current_exam_index], 
@@ -1521,6 +1538,7 @@ async def cb_next_exam(c: CallbackQuery):
             
             user.exam_results.append(user.exam_score)
             user.current_exam = None
+            user.in_exam_mode = False  # Выключаем режим экзамена
             
             kb = InlineKeyboardBuilder()
             kb.button(text="🏠 МЕНЮ", callback_data="back_main")
@@ -1538,7 +1556,10 @@ async def cb_my_achievements(c: CallbackQuery):
             text += f"{ach['icon']} {ach['name']} - ✅\n"
             unlocked += 1
         else:
-            text += f"🔒 {ach['name']}\n"
+            if "progress" in ach:
+                text += f"🔒 {ach['name']} - {ach['progress']}/{ach['target']}\n"
+            else:
+                text += f"🔒 {ach['name']}\n"
     
     text += f"\nИтого: {unlocked}/{len(user.achievements)}"
     
@@ -1552,7 +1573,12 @@ async def cb_my_progress(c: CallbackQuery):
     user = get_user_state(c.from_user.id)
     prog = user.get_progress_summary()
     
-    text = f"📊 ПРОГРЕСС:\n\n🎯 Точность: {prog['accuracy']}%\n⭐ Баллов: {prog['total_score']}\n✅ Решено: {prog['total_questions']}\n📚 Тем: {prog['topics_mastered']}/{prog['total_topics']}"
+    text = f"📊 ПРОГРЕСС:\n\n"
+    text += f"🎯 Точность: {prog['accuracy']}%\n"
+    text += f"⭐ Баллов: {prog['total_score']}\n"
+    text += f"✅ Решено: {prog['total_questions']}\n"
+    text += f"🔥 Серия: {prog['perfect_answers_streak']}\n"
+    text += f"📚 Тем: {prog['topics_mastered']}/{prog['total_topics']}"
     
     kb = InlineKeyboardBuilder()
     kb.button(text="🔙 НАЗАД", callback_data="back_achievements")
@@ -1569,6 +1595,7 @@ async def send_question(user_id, question, msg=None, exam_mode=False):
     user = get_user_state(user_id)
     user.current_question = question
     user.waiting_for_answer = False
+    user.in_exam_mode = exam_mode  # Сохраняем режим
     
     if exam_mode:
         num = user.current_exam_index + 1
@@ -1628,9 +1655,10 @@ async def handle_text(m: Message):
         
         if ans:
             correct = check_text_answer(q, ans)
+            # Баллы начисляем ТОЛЬКО если ответ правильный
             points = q["points"] if correct else 0
             
-            exam_mode = bool(user.current_exam)
+            exam_mode = user.in_exam_mode
             if exam_mode:
                 user.exam_score += points
             
@@ -1639,8 +1667,12 @@ async def handle_text(m: Message):
             
             text = f"{'✅ ПРАВИЛЬНО!' if correct else '❌ НЕПРАВИЛЬНО'}\n\n"
             text += f"<b>Ваш ответ:</b> {ans[:100]}\n\n"
+            if not correct and "correct_answers" in q:
+                text += f"<b>Правильный ответ:</b> {', '.join(q['correct_answers'])}\n\n"
             text += f"<b>Объяснение:</b> {q['explanation']}\n\n"
-            text += f"📊 Правильных: {user.correct_answers}\n⭐ Баллов: {user.score}"
+            text += f"📊 Правильных: {user.correct_answers}\n"
+            text += f"⭐ Баллов: {user.score}\n"
+            text += f"🔥 Серия: {user.perfect_answers_streak}"
             
             await m.answer(text, reply_markup=get_after_answer_keyboard(exam_mode))
         return
@@ -1653,7 +1685,7 @@ async def handle_text(m: Message):
                 correct = (num - 1) == q["correct"]
                 points = q["points"] if correct else 0
                 
-                exam_mode = bool(user.current_exam)
+                exam_mode = user.in_exam_mode
                 if exam_mode:
                     user.exam_score += points
                 
@@ -1661,9 +1693,12 @@ async def handle_text(m: Message):
                 
                 text = f"{'✅ ПРАВИЛЬНО!' if correct else '❌ НЕПРАВИЛЬНО'}\n\n"
                 text += f"<b>Ваш ответ:</b> {num}\n"
-                text += f"<b>Правильный ответ:</b> {q['correct'] + 1}\n\n"
+                if not correct:
+                    text += f"<b>Правильный ответ:</b> {q['correct'] + 1}\n\n"
                 text += f"<b>Объяснение:</b> {q['explanation']}\n\n"
-                text += f"📊 Правильных: {user.correct_answers}\n⭐ Баллов: {user.score}"
+                text += f"📊 Правильных: {user.correct_answers}\n"
+                text += f"⭐ Баллов: {user.score}\n"
+                text += f"🔥 Серия: {user.perfect_answers_streak}"
                 
                 user.waiting_for_answer = False
                 await m.answer(text, reply_markup=get_after_answer_keyboard(exam_mode))
@@ -1677,7 +1712,7 @@ async def main():
     print("🤖 ЗАПУСК БОТА ДЛЯ ПОДГОТОВКИ К ОГЭ")
     print("=" * 60)
     print(f"✅ Токен: Установлен")
-    print(f"📚 Теория: 6 тем, {total_subtopics} ПОДТЕМ - ВСЕ РАБОТАЮТ!")
+    print(f"📚 Теория: 6 тем, {total_subtopics} ПОДТЕМ")
     print(f"   - Человек и общество: {len(THEORY_DETAILED['Человек и общество'])} подтем")
     print(f"   - Экономика: {len(THEORY_DETAILED['Экономика'])} подтем")
     print(f"   - Социальная сфера: {len(THEORY_DETAILED['Социальная сфера'])} подтем")
@@ -1685,7 +1720,9 @@ async def main():
     print(f"   - Право: {len(THEORY_DETAILED['Право'])} подтем")
     print(f"   - Духовная культура: {len(THEORY_DETAILED['Духовная культура'])} подтем")
     print(f"🎯 Задания: 24 шт")
-    print(f"🔄 Кнопки: К ЗАДАНИЯМ / ПРОДОЛЖИТЬ ВАРИАНТ")
+    print(f"✅ ИСПРАВЛЕНО: Баллы только за правильные ответы")
+    print(f"✅ ИСПРАВЛЕНО: Кнопка 'К ЗАДАНИЯМ' в обычном режиме")
+    print(f"✅ ИСПРАВЛЕНО: Кнопка 'ПРОДОЛЖИТЬ ВАРИАНТ' только в экзамене")
     print("=" * 60)
     
     try:
